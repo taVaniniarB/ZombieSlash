@@ -3,13 +3,19 @@
 
 #include "CharacterStat/CharacterStatComponent.h"
 #include "CharacterStatComponent.h"
+#include "GameData/ZSGameSingleton.h"
 
 // Sets default values for this component's properties
 UCharacterStatComponent::UCharacterStatComponent()
 {
-	SetHP(MaxHP);
 }
 
+
+void UCharacterStatComponent::SetStat(FName ID)
+{
+	BaseStat = UZSGameSingleton::Get().GetCharacterStat(ID);
+	check(BaseStat.MaxHP > 0);
+}
 
 float UCharacterStatComponent::ApplyDamage(float InDamage)
 {

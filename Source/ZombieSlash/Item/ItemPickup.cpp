@@ -11,6 +11,8 @@
 AItemPickup::AItemPickup()
 {
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerSphere"));
+	Trigger->SetSphereRadius(150.f);
+
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 
 	RootComponent = Trigger;
@@ -18,6 +20,9 @@ AItemPickup::AItemPickup()
 
 	Trigger->SetCollisionProfileName(CPROFILE_ZSTRIGGER);
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AItemPickup::OnOverlapBegin);
+	Trigger->OnComponentEndOverlap.AddDynamic(this, &AItemPickup::OnOverlapEnd);
+
+	Quantity = 1;
 }
 
 // Called when the game starts or when spawned
@@ -29,13 +34,6 @@ void AItemPickup::BeginPlay()
 
 void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
 {
-	/*if (nullptr == ItemData)
-	{
-		Destroy();
-		UE_LOG(LogTemp, Warning, TEXT("ItemPickup: ItemData was Null"));
-		return;
-	}*/
-
 	ICharacterItemInterface* OverlappingPawn = Cast<ICharacterItemInterface>(OtherActor);
 	if (OverlappingPawn)
 	{

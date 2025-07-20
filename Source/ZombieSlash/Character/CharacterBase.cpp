@@ -45,6 +45,9 @@ ACharacterBase::ACharacterBase()
 void ACharacterBase::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Stat Setting
+	Stat->SetStat(CharacterID);
 }
 
 void ACharacterBase::PostInitializeComponents()

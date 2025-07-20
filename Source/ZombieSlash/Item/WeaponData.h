@@ -17,5 +17,6 @@ class ZOMBIESLASH_API UWeaponData : public UItemData
 public:
 	UWeaponData();
 
-	TObjectPtr<UStaticMeshComponent> WeaponMesh;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<UStaticMesh> WeaponMesh;
 };

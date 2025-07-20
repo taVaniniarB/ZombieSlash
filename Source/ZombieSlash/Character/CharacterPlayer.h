@@ -72,6 +72,8 @@ protected:
 	void PickupItem();
 	void UseHealItem();
 
+	void EquippedWeaponChanged();
+
 	//ECharacterControlType CurrentCharacterControlType;
 
 protected:

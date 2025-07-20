@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
-#include "ItemPickup.h"
+//#include "ItemPickup.h"
 
 #include "InventoryComponent.generated.h"
 
@@ -46,22 +46,53 @@ public:
 	UPROPERTY()
 	int32 MaxSlotCount = 20;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 CurSlotCount = 0;
+
+	UPROPERTY()
+	int32 WeaponSlotCount = 2;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FInventorySlot EquippedWeaponSlot1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FInventorySlot EquippedWeaponSlot2;
+
+	//UPROPERTY()
+	//TArray<TObjectPtr<const class UWeaponData>> EquippedWeapons;
+
+	//UFUNCTION()
+	//const TArray<TObjectPtr<const class UWeaponData>>& GetEquippedWeapons() const;
+
+	UFUNCTION(BlueprintCallable)
+	bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
+
 	UFUNCTION(BlueprintCallable)
 	bool AddItem(const UItemData* ItemData, int32 Quantity);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetItemCount(FName ItemID) const;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemCountByType(enum EItemType ItemType) const;
 	
 	UFUNCTION(BlueprintCallable)
-	int32 RemoveItem(FName ItemID) const;
+	int32 RemoveItem(FName ItemID);
 
-	//HealItem* GetEquippedHealItem() { return EquippedHealItem; }
+	UFUNCTION(BlueprintCallable)
+	bool UseItem(FName ItemID);
 
 	UPROPERTY()
-	TObjectPtr<class HealItemData> EquippedHealItem;
+	FName CurHealItemID;
 
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FName GetCurHealItemID() { return CurHealItemID; }
+
+	
 protected:
 	int32 FindStackableSlotIndex(const class UItemData* ItemData) const;
 
 	int32 FindEmptySlotIndex() const;
+
+	int32 FindItemSlotIndexByID(FName InID) const;
 };

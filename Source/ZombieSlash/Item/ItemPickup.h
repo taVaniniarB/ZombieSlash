@@ -29,6 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<class UItemData> ItemData;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	int32 Quantity;
+
 protected:
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, 

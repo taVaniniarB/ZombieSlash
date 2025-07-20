@@ -1,0 +1,3 @@
+ID,MaxHP,Attack,AttackRange,AttackSpeed,MovementSpeed
+Player_Default,100,30,0,1,300
+Enemy_Zombie,40,10,40,1,400

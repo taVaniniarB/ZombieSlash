@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Character/CharacterPlayer.h"
@@ -11,6 +11,8 @@
 #include "Engine/OverlapResult.h"
 #include "Item/ItemPickup.h"
 #include "Item/InventoryComponent.h"
+#include "Item/ItemData.h"
+#include "Item/WeaponData.h"
 #include "CharacterStat/CharacterStatComponent.h"
 
 ACharacterPlayer::ACharacterPlayer()
@@ -76,6 +78,7 @@ void ACharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Input Setting
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -105,7 +108,7 @@ void ACharacterPlayer::SetDead()
 void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	UE_LOG(LogTemp, Warning, TEXT("SetupPlayerInputComponent Called"));
+
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
@@ -185,8 +188,14 @@ void ACharacterPlayer::PickupItem()
 
 	if (ClosestItem)
 	{
-		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData, 1);
+		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData, ClosestItem->Quantity);
 
+		for (int i = 0; i < Inventory->MaxSlotCount; ++i)
+		{
+			if (IsValid(Inventory->Items[i].ItemData))
+				UE_LOG(LogTemp, Warning, TEXT("%s, %dê°œ, ìŠ¬ë¡¯: %d"), *Inventory->Items[i].ItemData->Name, Inventory->Items[i].Quantity, i);
+		}
+			
 		if (bSuccess)
 		{
 			OverlappingItems.Remove(ClosestItem);
@@ -197,17 +206,38 @@ void ACharacterPlayer::PickupItem()
 
 void ACharacterPlayer::UseHealItem()
 {
-	//Stat->HealHp(Inventory->GetEquippedHealItem())
+	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
+	
+	Inventory->UseItem(Inventory->GetCurHealItemID());
+	// Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
+}
+
+void ACharacterPlayer::EquippedWeaponChanged()
+{
+	//auto EquippedWeapons = Inventory->GetEquippedWeapons();
+	//const UWeaponData* Slot1Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot1.ItemData);
+	//const UWeaponData* Slot2Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot2.ItemData);
+	
+	/*if (EquippedWeapons.Num())
+	{
+		if (WeaponData->WeaponMesh.IsPending())
+		{
+			WeaponData->WeaponMesh.LoadSynchronous();
+		}
+		Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh.Get());
+	}*/
 }
 
 void ACharacterPlayer::AddOverlappingItem(AItemPickup* InItemData)
 {
 	OverlappingItems.Add(InItemData);
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
 }
 
 void ACharacterPlayer::RemoveOverlappingItem(AItemPickup* InItemData)
 {
 	OverlappingItems.Remove(InItemData);
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
 }
 
 AActor* ACharacterPlayer::GetTargetActor()
@@ -217,12 +247,12 @@ AActor* ACharacterPlayer::GetTargetActor()
 	FCollisionQueryParams CollisionQueryParams(SCENE_QUERY_STAT(Detect), false, this);
 
 	UWorld* World = GetWorld();
-	// ÇÃ·¹ÀÌ¾î°¡ ¿©·¯ ¸íÀÌ¶ó´Â °¡Á¤ÀÌ¶ó¼­ °á°ú¸¦ ¹è¿­·Î ¹ŞÀ½
+	// í”Œë ˆì´ì–´ê°€ ì—¬ëŸ¬ ëª…ì´ë¼ëŠ” ê°€ì •ì´ë¼ì„œ ê²°ê³¼ë¥¼ ë°°ì—´ë¡œ ë°›ìŒ
 	bool bResult = World->OverlapMultiByChannel(
 		OverlapResults, GetActorLocation(), FQuat::Identity, CCHANNEL_ZSACTION, FCollisionShape::MakeSphere(DetectRadius), CollisionQueryParams
 	);
 
-	// ZSAction Ã¤³Î·Î Æ¯Á¤ ¹İ°æ ³» Ãæµ¹ °¨Áö, °¨ÁöµÈ °ÍÀÌ AIÄÁÆ®·Ñ·¯¸¦ Áö´Ñ ÀûÀÌ¶ó¸é
+	// ZSAction ì±„ë„ë¡œ íŠ¹ì • ë°˜ê²½ ë‚´ ì¶©ëŒ ê°ì§€, ê°ì§€ëœ ê²ƒì´ AIì»¨íŠ¸ë¡¤ëŸ¬ë¥¼ ì§€ë‹Œ ì ì´ë¼ë©´
 	if (bResult)
 	{
 		float BestScore = -FLT_MAX;
@@ -233,9 +263,9 @@ AActor* ACharacterPlayer::GetTargetActor()
 			APawn* Pawn = Cast<APawn>(OverlapResult.GetActor());
 			if (Pawn && !Pawn->GetController()->IsPlayerController())
 			{
-				// °¡ÁßÄ¡ ¸Å°Ü¼­ °¡Àå Á¡¼ö°¡ ³ôÀº °ÍÀ» Å¸°ÙÀ¸·Î ¼±Á¤ÇÑ´Ù.
+				// ê°€ì¤‘ì¹˜ ë§¤ê²¨ì„œ ê°€ì¥ ì ìˆ˜ê°€ ë†’ì€ ê²ƒì„ íƒ€ê²Ÿìœ¼ë¡œ ì„ ì •í•œë‹¤.
 
-				// ------ Æò°¡Ç×¸ñ °è»ê ------
+				// ------ í‰ê°€í•­ëª© ê³„ì‚° ------
 				const float Dist = FVector::Distance(GetActorLocation(), Pawn->GetActorLocation());
 				const float DistScore = 1.f - FMath::Clamp(Dist / DetectRadius, 0.f, 1.f);
 
@@ -246,7 +276,7 @@ AActor* ACharacterPlayer::GetTargetActor()
 				const bool  PrevTarget = (Pawn == AttackTarget);
 				const float StickyScore = PrevTarget ? 1.f : 0.f;
 
-				// ------ °¡ÁßÇÕ ------
+				// ------ ê°€ì¤‘í•© ------
 				const float Score =
 					DistScore * 0.50f +
 					AngleScore * 0.30f +
@@ -261,11 +291,11 @@ AActor* ACharacterPlayer::GetTargetActor()
 
 			AttackTarget = BestPawn;
 
-			// °¨Áö ½Ã º»ÀÎ ÁÖº¯À¸·Î °¨Áö ¹İ°æÀ» ³ªÅ¸³»´Â ³ì»ö ±¸Ã¼¸¦ ±×¸°´Ù
+			// ê°ì§€ ì‹œ ë³¸ì¸ ì£¼ë³€ìœ¼ë¡œ ê°ì§€ ë°˜ê²½ì„ ë‚˜íƒ€ë‚´ëŠ” ë…¹ìƒ‰ êµ¬ì²´ë¥¼ ê·¸ë¦°ë‹¤
 			DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Green, false, 0.2f);
-			// °¨ÁöµÈ Àû ÁÖº¯À¸·Î Á¡À» ±×¸°´Ù
+			// ê°ì§€ëœ ì  ì£¼ë³€ìœ¼ë¡œ ì ì„ ê·¸ë¦°ë‹¤
 			DrawDebugPoint(World, BestPawn->GetActorLocation(), 10.f, FColor::Green, false, 0.2f);
-			// °¨ÁöµÈ Àû - ÇÃ·¹ÀÌ¾î °£ ¼±À» ±ß´Â´Ù
+			// ê°ì§€ëœ ì  - í”Œë ˆì´ì–´ ê°„ ì„ ì„ ê¸‹ëŠ”ë‹¤
 			DrawDebugLine(World, GetActorLocation(), BestPawn->GetActorLocation(), FColor::Green, false, 0.27f);
 
 		}
