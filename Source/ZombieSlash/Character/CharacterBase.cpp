@@ -7,6 +7,7 @@
 #include "Animation/ComboActionData.h"
 #include "Physics/ZSCollision.h"
 #include "Engine/DamageEvents.h"
+#include "UI/HPBarWidget.h"
 #include "CharacterStat/CharacterStatComponent.h"
 
 // Sets default values
@@ -41,19 +42,11 @@ ACharacterBase::ACharacterBase()
 	Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 }
 
-// Called when the game starts or when spawned
-void ACharacterBase::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// Stat Setting
-	Stat->SetStat(CharacterID);
-}
-
 void ACharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	//Stat->SetBaseStat(CharacterID);
 	Stat->OnHPZero.AddUObject(this, &ACharacterBase::SetDead);
 }
 
@@ -62,7 +55,7 @@ float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	Stat->ApplyDamage(DamageAmount);
-	
+
 	return DamageAmount;
 }
 
@@ -153,7 +146,7 @@ void ACharacterBase::ComboCheck()
 		CurCombo = FMath::Clamp(CurCombo + 1, 1, ComboActionData->MaxComboCount);
 		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboActionData->MontageSectionNamePrefix, CurCombo);
 		AnimInst->Montage_JumpToSection(NextSection, ComboActionMontage);
-		
+
 		SetComboCheckTimer();
 		HasNextComboCommand = false;
 	}
@@ -162,12 +155,12 @@ void ACharacterBase::ComboCheck()
 void ACharacterBase::AttackHitCheck()
 {
 	FHitResult OutHitResult;
-	
+
 	// Trace Tag: 콜리전 분석할 때의 식별자. 수행할 작업에 대해 Attack이라는 태그로 조사할 수 있게 함
-    // Trace Complex: 복잡한 형태(오목 concave)는 올라서는 것만 가능한데, 이런 복잡한 충돌체도 감지할 것인지에 대한 옵션
-    // 무시할 액터 (이 경우, 자기 자신)
+	// Trace Complex: 복잡한 형태(오목 concave)는 올라서는 것만 가능한데, 이런 복잡한 충돌체도 감지할 것인지에 대한 옵션
+	// 무시할 액터 (이 경우, 자기 자신)
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
-	
+
 	const float AttackRange = 45.f;
 	const float AttackRadius = 50.f;
 	const float AttackDamage = 30.f;
@@ -177,7 +170,7 @@ void ACharacterBase::AttackHitCheck()
 
 	bool HitDetected = GetWorld()->SweepSingleByChannel(
 		OutHitResult, Start, End,
-		FQuat::Identity, CCHANNEL_ZSACTION, 
+		FQuat::Identity, CCHANNEL_ZSACTION,
 		FCollisionShape::MakeSphere(AttackRadius), Params);
 
 	if (HitDetected)
@@ -210,23 +203,17 @@ void ACharacterBase::PlayDeadAnimation()
 	AnimInst->Montage_Play(DeadMontage, 1.0f);
 }
 
-void ACharacterBase::SetupCharacterWidget(UZSUserWidget* InUserWidget)
+void ACharacterBase::SetupCharacterWidget(UZSUserWidget* InWidget)
 {
-	////캐릭터 머리 위 HP바를 세팅한다
-	//UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(InUserWidget);
-	//
-	//if (HPBarWidget)
-	//{
-	//	HPBarWidget->SetMaxHP(Stat->GetMaxHP());
-	//	HPBarWidget->UpdateHpBar(Stat->GetCurHP());
+	//HP바를 세팅한다
+	UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(InWidget);
 
-	//	Stat->OnHPChanged.AddUObject(HPBarWidget, UHPBarWidget::UpdateHpBar);
-	//}
-}
+	if (HPBarWidget)
+	{
+		HPBarWidget->SetMaxHP(Stat->GetMaxHP());
+		HPBarWidget->UpdateHpBar(Stat->GetCurHP());
 
-// Called every frame
-void ACharacterBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+		Stat->OnHPChanged.AddUObject(HPBarWidget, &UHPBarWidget::UpdateHpBar);
+		Stat->OnStatChanged.AddUObject(HPBarWidget, &UHPBarWidget::UpdateStat);
+	}
 }

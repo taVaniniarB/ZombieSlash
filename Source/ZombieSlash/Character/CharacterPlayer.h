@@ -69,10 +69,10 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void Attack();
+
 	void PickupItem();
 	void UseHealItem();
-
-	void EquippedWeaponChanged();
+	void EquipWeapon(int32 WeaponSlotNum);
 
 	//ECharacterControlType CurrentCharacterControlType;
 
@@ -85,6 +85,14 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class UInventoryComponent> Inventory;
+	
+	// Weapon Section
+	UPROPERTY()
+	TArray<TObjectPtr<class UItemData>> EquippedWeapons;
+	UPROPERTY()
+	int32 CurWeaponSlotIdx;
+	UFUNCTION()
+	void ChangeWeaponSlot();
 
 
 	// HUD Section

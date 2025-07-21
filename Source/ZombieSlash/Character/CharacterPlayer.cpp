@@ -71,7 +71,8 @@ ACharacterPlayer::ACharacterPlayer()
 	}
 
 	// Inventory
-	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+
 }
 
 void ACharacterPlayer::BeginPlay()
@@ -212,32 +213,47 @@ void ACharacterPlayer::UseHealItem()
 	// Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
 }
 
-void ACharacterPlayer::EquippedWeaponChanged()
+void ACharacterPlayer::EquipWeapon(int32 WeaponSlotNum)
 {
-	//auto EquippedWeapons = Inventory->GetEquippedWeapons();
-	//const UWeaponData* Slot1Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot1.ItemData);
-	//const UWeaponData* Slot2Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot2.ItemData);
 	
-	/*if (EquippedWeapons.Num())
+	UWeaponData* WeaponData = Cast<UWeaponData>(EquippedWeapons[WeaponSlotNum]);
+	if (WeaponData)
 	{
-		if (WeaponData->WeaponMesh.IsPending())
+		/*if (WeaponData->WeaponMesh.IsPending())
 		{
 			WeaponData->WeaponMesh.LoadSynchronous();
-		}
-		Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh.Get());
-	}*/
+		}*/
+		Weapon->SetStaticMesh(WeaponData->WeaponMesh.Get());
+		Stat->SetModifierStat(WeaponData->ModifierStat);
+	}
+}
+
+void ACharacterPlayer::ChangeWeaponSlot()
+{
+	// 그냥 인벤토리에서 Getter만드는편이 좋을지도
+	const UWeaponData* Slot1Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot1.ItemData);
+	const UWeaponData* Slot2Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot2.ItemData);
+	
+	// 플레이어는 인벤토리 내 슬롯 개수만한 무기 배열을 가진다 (TArray<UItemData> EquippedWeapons)
+	// 현재 사용 중인 슬롯 인덱스: CurWeaponSlotIdx
+
+	// EquippedWeapons[0] = Slot1Weapon;
+	// EquippedWeapons[1] = Slot2Weapon;
+	
+	// 재장착 함수 호출
+	EquipWeapon(CurWeaponSlotIdx);
 }
 
 void ACharacterPlayer::AddOverlappingItem(AItemPickup* InItemData)
 {
 	OverlappingItems.Add(InItemData);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
 }
 
 void ACharacterPlayer::RemoveOverlappingItem(AItemPickup* InItemData)
 {
 	OverlappingItems.Remove(InItemData);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
 }
 
 AActor* ACharacterPlayer::GetTargetActor()

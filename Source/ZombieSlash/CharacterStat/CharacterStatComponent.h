@@ -10,6 +10,7 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnHPZeroDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHPChangedDelegate, float /*CurHP*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStatChangedDelegate, const FCharacterStat& /*BaseStat*/, const FCharacterStat& /*ModifierStat*/);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZOMBIESLASH_API UCharacterStatComponent : public UActorComponent
@@ -20,10 +21,19 @@ public:
 	// Sets default values for this component's properties
 	UCharacterStatComponent();
 
+protected:
+	virtual void InitializeComponent() override;
+
+public:
 	FOnHPZeroDelegate OnHPZero;
 	FOnHPChangedDelegate OnHPChanged;
+	FOnStatChangedDelegate OnStatChanged;
 
-	void SetStat(FName ID);
+	FORCEINLINE void AddBaseStat(const FCharacterStat& InAddBaseStat) { BaseStat = BaseStat + InAddBaseStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
+	void SetBaseStat(FName ID);
+	FORCEINLINE void SetBaseStat(const FCharacterStat& InBaseStat) { BaseStat = InBaseStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
+	FORCEINLINE void SetModifierStat(const FCharacterStat& InModifierStat) { ModifierStat = InModifierStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
+
 
 	float ApplyDamage(float InDamage);
 
@@ -39,10 +49,6 @@ public:
 
 	FORCEINLINE void HealHp(float InHealAmount) { /*CurHP = FMath::Clamp(CurHP + InHealAmount, 0, GetTotalStat().MaxHp); OnHPChanged.Broadcast(CurHP);*/ }
 
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
 
 protected:	
 	void SetHP(float NewHP);

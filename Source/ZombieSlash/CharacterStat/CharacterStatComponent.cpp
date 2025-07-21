@@ -1,25 +1,38 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ï»¿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "CharacterStat/CharacterStatComponent.h"
 #include "CharacterStatComponent.h"
+#include "Interface/CharacterStatInterface.h"
 #include "GameData/ZSGameSingleton.h"
 
 // Sets default values for this component's properties
 UCharacterStatComponent::UCharacterStatComponent()
 {
+	bWantsInitializeComponent = true;
 }
 
-
-void UCharacterStatComponent::SetStat(FName ID)
+void UCharacterStatComponent::InitializeComponent()
 {
-	BaseStat = UZSGameSingleton::Get().GetCharacterStat(ID);
-	check(BaseStat.MaxHP > 0);
+	Super::InitializeComponent();
+
+	FName OwnerID = Cast<ICharacterStatInterface>(GetOwner())->GetCharacterID();
+	if (OwnerID.GetStringLength() <= 0)
+		UE_LOG(LogTemp, Warning, TEXT("ì˜¤ë„ˆ ì•„ì´ë”” ì°¾ì§€ ëª»í•¨"));
+	SetBaseStat(OwnerID);
+	SetHP(GetMaxHP());
+}
+
+void UCharacterStatComponent::SetBaseStat(FName InID)
+{
+	BaseStat = UZSGameSingleton::Get().GetCharacterStat(InID);
+	OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat());
+	//check(BaseStat.MaxHP > 0);
 }
 
 float UCharacterStatComponent::ApplyDamage(float InDamage)
 {
-	// ´ë¹ÌÁö°¡ À½¼öÀÎ °æ¿ì ´ëºñ
+	// ëŒ€ë¯¸ì§€ê°€ ìŒìˆ˜ì¸ ê²½ìš° ëŒ€ë¹„
 	const float ActualDamage = FMath::Max(0.f, InDamage);
 	const float PrevHP = CurHP;
 
@@ -33,16 +46,10 @@ float UCharacterStatComponent::ApplyDamage(float InDamage)
 	return ActualDamage;
 }
 
-// Called when the game starts
-void UCharacterStatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
-}
 
 void UCharacterStatComponent::SetHP(float NewHP)
 {
-	CurHP = FMath::Clamp<float>(NewHP, 0.f, MaxHP);
+	CurHP = FMath::Clamp<float>(NewHP, 0.f, GetMaxHP());
+	
+	OnHPChanged.Broadcast(CurHP);
 }

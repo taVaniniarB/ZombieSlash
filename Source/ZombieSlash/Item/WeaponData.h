@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Item/ItemData.h"
+#include "GameData/CharacterStat.h"
 #include "WeaponData.generated.h"
 
 /**
@@ -19,4 +20,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	TObjectPtr<UStaticMesh> WeaponMesh;
+
+	UPROPERTY(EditAnywhere, Category = Stat)
+	FCharacterStat ModifierStat;
 };

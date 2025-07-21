@@ -24,3 +24,21 @@ UZSGameSingleton& UZSGameSingleton::Get()
 	}
 	return *NewObject<UZSGameSingleton>();
 }
+
+FCharacterStat UZSGameSingleton::GetCharacterStat(FName InID) const
+{
+	if (CharacterStatTable)
+	{
+		FCharacterStat* Stat = CharacterStatTable->FindRow<FCharacterStat>(InID, TEXT("GetCharacterStat By ID"));
+		if (Stat)
+		{
+			return *Stat;
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("스탯 찾지 못함"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("CharacterStatTable was null"));
+
+	return FCharacterStat();
+}

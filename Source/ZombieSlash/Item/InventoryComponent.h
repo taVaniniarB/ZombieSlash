@@ -86,7 +86,7 @@ public:
 	FName CurHealItemID;
 
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE FName GetCurHealItemID() { return CurHealItemID; }
+	FORCEINLINE FName GetCurHealItemID() const { return CurHealItemID; }
 
 	
 protected:

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ZSUserWidget.h"
+#include "GameData/CharacterStat.h"
 #include "HPBarWidget.generated.h"
 
 /**
@@ -23,12 +24,15 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
+	void UpdateStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat);
 	void UpdateHpBar(float NewCurHP);
 
 protected:
 	UPROPERTY()
 	TObjectPtr<class UProgressBar> HPProgressBar;
 
+	UPROPERTY()
+	float CurHP;
 	UPROPERTY()
 	float MaxHP;
 };

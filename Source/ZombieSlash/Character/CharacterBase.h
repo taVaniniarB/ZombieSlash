@@ -6,10 +6,12 @@
 #include "GameFramework/Character.h"
 #include "Interface/AnimationAttackInterface.h"
 #include "Interface/CharacterWidgetInterface.h"
+#include "Interface/CharacterStatInterface.h"
 #include "CharacterBase.generated.h"
 
 UCLASS()
-class ZOMBIESLASH_API ACharacterBase : public ACharacter, public IAnimationAttackInterface, public ICharacterWidgetInterface
+class ZOMBIESLASH_API ACharacterBase : public ACharacter, 
+	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface
 {
 	GENERATED_BODY()
 
@@ -18,8 +20,6 @@ public:
 	ACharacterBase();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 
 	// Attack Hit Section
@@ -63,19 +63,16 @@ protected:
 	// 런타임 수정 불가 : 게임이 실행 중일 때(런타임) 생성된 이 클래스의 인스턴스(월드에 배치된 캐릭터) 에서는 이 값을 편집할 수 없습니다.이는 캐릭터의 기본 스탯 ID는 게임 중에 변할 일이 없다는 전제에 적합합니다.
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Stat)
 	FName CharacterID;
+	virtual FName GetCharacterID() const override { return CharacterID; }
+
+	virtual void SetupCharacterWidget(class UZSUserWidget* InWidget) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCharacterStatComponent> Stat;
-
-	virtual void SetupCharacterWidget(UZSUserWidget* InUserWidget) override;
 
 	// Weapon Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> Weapon;
 
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 };

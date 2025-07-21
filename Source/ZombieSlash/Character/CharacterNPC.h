@@ -25,5 +25,4 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UWidgetComponent> HPBar;
 
-	virtual void SetupCharacterWidget(class UZSUserWidget* InWidget) override;
 };

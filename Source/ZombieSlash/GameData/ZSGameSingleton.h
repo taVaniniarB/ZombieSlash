@@ -13,24 +13,14 @@
 UCLASS()
 class ZOMBIESLASH_API UZSGameSingleton : public UObject
 {
-	GENERATED_BODY();
+	GENERATED_BODY()
 
 public:
 	UZSGameSingleton();
 	static UZSGameSingleton& Get();
 
 	// 캐릭터 스탯 테이블을 내부적으로 보관해서 필요한 게임 객체들에게 제공하도록 한다.
-	FORCEINLINE FCharacterStat GetCharacterStat(FName InID) const
-	{
-		if (CharacterStatTable)
-		{
-			FCharacterStat* Stat = CharacterStatTable->FindRow<FCharacterStat>(InID, TEXT("GetCharacterStat By ID"));
-			if (Stat)
-			{
-				return *Stat;
-			}
-		}
-	}
+	FCharacterStat GetCharacterStat(FName InID) const;
 
 private:
 	UPROPERTY()

@@ -22,17 +22,31 @@ void UHPBarWidget::NativeConstruct()
 
 	HPProgressBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("PBHPBar")));
 
-	// 기본적으로 스탯을 갖는 주체는 캐릭터베이스. 그렇다면 OwningActor를 케릭터베이스로 캐스팅해야 할까?
+	// 기본적으로 스탯을 갖는 주체는 캐릭터베이스. 그렇다면 OwningActor를 캐릭터베이스로 캐스팅해야 할까?
 	// 그렇게 한다면 이 HP바 위젯은 캐릭터만 가질 수 있게 되어버린다. 의존성이 생기는 것을 방지하기 위해 인터페이스 사용하자
 	ICharacterWidgetInterface* Character = Cast<ICharacterWidgetInterface>(OwningActor);
 	if (Character)
 	{
 		Character->SetupCharacterWidget(this);
 	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("NativeConstruct : ICharacterWidgetInterface Cast Failed"));
+}
+
+void UHPBarWidget::UpdateStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat)
+{
+	MaxHP = (BaseStat + ModifierStat).MaxHP;
+	
+	if (HPProgressBar)
+	{
+		HPProgressBar->SetPercent(CurHP / MaxHP);
+	}
 }
 
 void UHPBarWidget::UpdateHpBar(float NewCurHP)
 {
+	CurHP = NewCurHP;
+
 	ensure(MaxHP > 0.f);
 
 	if (HPProgressBar)

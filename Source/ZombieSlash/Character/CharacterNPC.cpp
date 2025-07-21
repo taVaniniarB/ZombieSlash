@@ -2,13 +2,12 @@
 
 
 #include "Character/CharacterNPC.h"
-#include "Components/WidgetComponent.h"
+#include "UI/ZSWidgetComponent.h"
 #include "CharacterStat/CharacterStatComponent.h"
-#include "UI/HPBarWidget.h"
 
 ACharacterNPC::ACharacterNPC()
 {
-	HPBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("Widget"));
+	HPBar = CreateDefaultSubobject<UZSWidgetComponent>(TEXT("Widget"));
 	HPBar->SetupAttachment(GetMesh());
 	HPBar->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
 
@@ -41,18 +40,4 @@ void ACharacterNPC::SetDead()
 	HPBar->SetHiddenInGame(true);
 }
 
-void ACharacterNPC::SetupCharacterWidget(UZSUserWidget* InUserWidget)
-{
-	Super::SetupCharacterWidget(InUserWidget);
 
-	//캐릭터 머리 위 HP바를 세팅한다
-	UHPBarWidget* HPBarWidget = Cast<UHPBarWidget>(InUserWidget);
-
-	if (HPBarWidget)
-	{
-		HPBarWidget->SetMaxHP(Stat->GetMaxHP());
-		HPBarWidget->UpdateHpBar(Stat->GetCurHP());
-
-		Stat->OnHPChanged.AddUObject(HPBarWidget, &UHPBarWidget::UpdateHpBar);
-	}
-}
