@@ -6,13 +6,14 @@
 #include "Character/CharacterBase.h"
 #include "InputActionValue.h"
 #include "Interface/CharacterItemInterface.h"
+#include "Interface/CharacterHUDInterface.h"
 #include "CharacterPlayer.generated.h"
 
 /**
  *
  */
 UCLASS()
-class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterItemInterface
+class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterItemInterface, public ICharacterHUDInterface
 {
 	GENERATED_BODY()
 
@@ -97,7 +98,7 @@ protected:
 
 	// HUD Section
 protected:
-	//virtual void SetupHUDWidget(class UABHUDWidget* InHUDWidget) override;
+	virtual void SetupHUDWidget(class UZSHUDWidget* InHUDWidget) override;
 
 protected:
 	UFUNCTION(BlueprintCallable)

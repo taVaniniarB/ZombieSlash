@@ -29,8 +29,6 @@ void UHPBarWidget::NativeConstruct()
 	{
 		Character->SetupCharacterWidget(this);
 	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("NativeConstruct : ICharacterWidgetInterface Cast Failed"));
 }
 
 void UHPBarWidget::UpdateStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat)

@@ -15,5 +15,6 @@ class ZOMBIESLASH_API UZSWidgetComponent : public UWidgetComponent
 	GENERATED_BODY()
 	
 protected:
+	// 액터의 BeginPlay 이후 호출
 	virtual void InitWidget() override;
 };

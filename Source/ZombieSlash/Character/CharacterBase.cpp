@@ -46,7 +46,6 @@ void ACharacterBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	//Stat->SetBaseStat(CharacterID);
 	Stat->OnHPZero.AddUObject(this, &ACharacterBase::SetDead);
 }
 
@@ -203,6 +202,7 @@ void ACharacterBase::PlayDeadAnimation()
 	AnimInst->Montage_Play(DeadMontage, 1.0f);
 }
 
+// 스탯의 델리게이트에 HP바 함수 바인딩 및 초기 세팅
 void ACharacterBase::SetupCharacterWidget(UZSUserWidget* InWidget)
 {
 	//HP바를 세팅한다

@@ -14,6 +14,7 @@
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "CharacterStat/CharacterStatComponent.h"
+#include "UI/ZSHUDWidget.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
@@ -254,6 +255,18 @@ void ACharacterPlayer::RemoveOverlappingItem(AItemPickup* InItemData)
 {
 	OverlappingItems.Remove(InItemData);
 	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
+}
+
+void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
+{
+	if (InHUDWidget)
+	{
+		InHUDWidget->UpdateHPBar(Stat->GetCurHP());
+		InHUDWidget->UpdateStat(Stat->GetBaseStat(), Stat->GetModifierStat());
+
+		Stat->OnHPChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateHPBar);
+		Stat->OnStatChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateStat);
+	}
 }
 
 AActor* ACharacterPlayer::GetTargetActor()
