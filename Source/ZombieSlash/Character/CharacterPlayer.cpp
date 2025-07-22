@@ -14,6 +14,7 @@
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "CharacterStat/CharacterStatComponent.h"
+#include "Interface/InteractWidgetInterface.h"
 #include "UI/ZSHUDWidget.h"
 
 ACharacterPlayer::ACharacterPlayer()
@@ -71,9 +72,27 @@ ACharacterPlayer::ACharacterPlayer()
 		HealAction = InputActionHealRef.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionInventoryRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Inventory.IA_Inventory'"));
+	if (nullptr != InputActionInventoryRef.Object)
+	{
+		InventoryAction = InputActionInventoryRef.Object;
+	}
+
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 
+}
+
+void ACharacterPlayer::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateClosestItem();
+	/*if (ClosestItem)
+	{
+		IInteractWidgetInterface* InteractWidget = Cast<IInteractWidgetInterface>(GetController());
+		InteractWidget->UpdateInteractWidget(ClosestItem->ItemData->Name);
+	}*/
 }
 
 void ACharacterPlayer::BeginPlay()
@@ -132,6 +151,9 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Pickup
 		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseHealItem);
+
+		// Inventory
+		//EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::OpenInventory);
 	}
 	else
 	{
@@ -173,21 +195,7 @@ void ACharacterPlayer::PickupItem()
 		UE_LOG(LogTemp, Warning, TEXT("OverlappingItems was 0"));
 	}
 
-	AItemPickup* ClosestItem = nullptr;
-	float ClosestDist = FLT_MAX;
-
-	for (AItemPickup* Item : OverlappingItems)
-	{
-		if (!IsValid(Item)) continue;
-
-		float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
-		if (Dist < ClosestDist)
-		{
-			ClosestDist = Dist;
-			ClosestItem = Item;
-		}
-	}
-
+	//UpdateClosestItem();
 	if (ClosestItem)
 	{
 		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData, ClosestItem->Quantity);
@@ -257,12 +265,30 @@ void ACharacterPlayer::RemoveOverlappingItem(AItemPickup* InItemData)
 	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
 }
 
+void ACharacterPlayer::UpdateClosestItem()
+{
+	ClosestItem = nullptr;
+	float ClosestDist = FLT_MAX;
+
+	for (AItemPickup* Item : OverlappingItems)
+	{
+		if (!IsValid(Item)) continue;
+
+		float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
+		if (Dist < ClosestDist)
+		{
+			ClosestDist = Dist;
+			ClosestItem = Item;
+		}
+	}
+}
+
 void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
 {
 	if (InHUDWidget)
 	{
-		InHUDWidget->UpdateHPBar(Stat->GetCurHP());
 		InHUDWidget->UpdateStat(Stat->GetBaseStat(), Stat->GetModifierStat());
+		InHUDWidget->UpdateHPBar(Stat->GetCurHP());
 
 		Stat->OnHPChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateHPBar);
 		Stat->OnStatChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateStat);

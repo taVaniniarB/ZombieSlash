@@ -20,6 +20,8 @@ class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacte
 public:
 	ACharacterPlayer();
 
+	virtual void Tick(float DeltaTime) override;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetDead() override;
@@ -65,6 +67,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> HealAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> InventoryAction;
+
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -81,8 +86,11 @@ protected:
 	// Item Section
 	void AddOverlappingItem(class AItemPickup* InItemData);
 	void RemoveOverlappingItem(class AItemPickup* InItemData);
+	void UpdateClosestItem();
 	TArray<class AItemPickup*> OverlappingItems;
-	TObjectPtr<AItemPickup> NearbyItem;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
+	TObjectPtr<AItemPickup> ClosestItem;
 
 	UPROPERTY()
 	TObjectPtr<class UInventoryComponent> Inventory;

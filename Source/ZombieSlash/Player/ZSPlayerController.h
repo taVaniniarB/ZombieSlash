@@ -21,11 +21,24 @@ protected:
 	virtual void BeginPlay() override;
 
 protected:
-	// 생성할 위젯의 클래스
+	// HUD 위젯 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
 	TSubclassOf<class UZSHUDWidget> ZSHUDWidgetClass;
 
-	// 생성한 위젯을 담을 변수
+	// HUD 위젯 인스턴스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
 	TObjectPtr<class UZSHUDWidget> ZSHUDWidget;
+
+	// 상호작용 메시지 위젯 클래스
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Interaction)
+	TSubclassOf<class UUserWidget> InteractWidgetClass;
+
+	// 상호작용 메시지 위젯 인스턴스
+	UPROPERTY()
+	TObjectPtr<class UUserWidget> InteractWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class ACharacterPlayer> CachedPlayerPawn;
+
+	virtual void OnPossess(APawn* InPawn) override;
 };

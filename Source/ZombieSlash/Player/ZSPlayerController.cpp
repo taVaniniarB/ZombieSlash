@@ -4,6 +4,7 @@
 #include "Player/ZSPlayerController.h"
 #include "ZSPlayerController.h"
 #include "UI/ZSHUDWidget.h"
+#include "Character/CharacterPlayer.h"
 
 AZSPlayerController::AZSPlayerController()
 {
@@ -18,6 +19,7 @@ AZSPlayerController::AZSPlayerController()
 	}
 }
 
+
 void AZSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -25,7 +27,7 @@ void AZSPlayerController::BeginPlay()
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
 
-	ZSHUDWidget = CreateWidget<UZSHUDWidget>(this, ZSHUDWidgetClass);
+	/*ZSHUDWidget = CreateWidget<UZSHUDWidget>(this, ZSHUDWidgetClass);
 	if (ZSHUDWidget)
 	{
 		ZSHUDWidget->AddToViewport();
@@ -34,4 +36,20 @@ void AZSPlayerController::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ZSHUDWidget was Null"));
 	}
+
+	if (InteractWidgetClass)
+	{
+		InteractWidget = CreateWidget<UUserWidget>(this, InteractWidgetClass);
+		if (InteractWidget)
+		{
+			InteractWidget->AddToViewport();
+			InteractWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}*/
+}
+
+void AZSPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	CachedPlayerPawn = Cast<ACharacterPlayer>(InPawn);
 }
