@@ -67,8 +67,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> HealAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> InventoryAction;
 
 
 	void Move(const FInputActionValue& Value);
@@ -83,7 +81,7 @@ protected:
 	//ECharacterControlType CurrentCharacterControlType;
 
 protected:
-	// Item Section
+	// Inventory Section
 	void AddOverlappingItem(class AItemPickup* InItemData);
 	void RemoveOverlappingItem(class AItemPickup* InItemData);
 	void UpdateClosestItem();
@@ -92,7 +90,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
 	TObjectPtr<AItemPickup> ClosestItem;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInventoryComponent> Inventory;
 	
 	// Weapon Section

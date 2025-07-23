@@ -23,10 +23,10 @@ struct FInventorySlot
 		: ItemData(nullptr), Quantity(0)
 	{}
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<const class UItemData> ItemData;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 Quantity;
 };
 
@@ -40,11 +40,11 @@ public:
 	UInventoryComponent();
 
 public:
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TArray<FInventorySlot> Items;
 
 	UPROPERTY()
-	int32 MaxSlotCount = 20;
+	int32 MaxSlotCount = 30;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 CurSlotCount = 0;

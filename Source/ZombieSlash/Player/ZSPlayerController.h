@@ -41,4 +41,8 @@ protected:
 	TObjectPtr<class ACharacterPlayer> CachedPlayerPawn;
 
 	virtual void OnPossess(APawn* InPawn) override;
+
+	// Inventory Input
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> InventoryAction;
 };

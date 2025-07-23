@@ -14,7 +14,6 @@
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "CharacterStat/CharacterStatComponent.h"
-#include "Interface/InteractWidgetInterface.h"
 #include "UI/ZSHUDWidget.h"
 
 ACharacterPlayer::ACharacterPlayer()
@@ -70,12 +69,6 @@ ACharacterPlayer::ACharacterPlayer()
 	if (nullptr != InputActionHealRef.Object)
 	{
 		HealAction = InputActionHealRef.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionInventoryRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Inventory.IA_Inventory'"));
-	if (nullptr != InputActionInventoryRef.Object)
-	{
-		InventoryAction = InputActionInventoryRef.Object;
 	}
 
 	// Inventory
@@ -151,9 +144,6 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Pickup
 		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseHealItem);
-
-		// Inventory
-		//EnhancedInputComponent->BindAction(InventoryAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::OpenInventory);
 	}
 	else
 	{

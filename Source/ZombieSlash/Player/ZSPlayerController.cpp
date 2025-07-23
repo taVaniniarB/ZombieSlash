@@ -5,6 +5,8 @@
 #include "ZSPlayerController.h"
 #include "UI/ZSHUDWidget.h"
 #include "Character/CharacterPlayer.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 AZSPlayerController::AZSPlayerController()
 {
@@ -16,6 +18,12 @@ AZSPlayerController::AZSPlayerController()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("ZSHUDWidgetRef.Class was Null"));
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionInventoryRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Inventory.IA_Inventory'"));
+	if (nullptr != InputActionInventoryRef.Object)
+	{
+		InventoryAction = InputActionInventoryRef.Object;
 	}
 }
 
