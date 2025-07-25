@@ -8,13 +8,18 @@
 #include "Item/MeleeData.h"
 #include "Interface/CharacterWeaponInterface.h"
 
-void AMeleeWeapon::BeginPlay()
-{
-    Super::BeginPlay();
 
+void AMeleeWeapon::OnEquip()
+{
+    Super::OnEquip();
     const UMeleeData* Melee = GetMeleeWeaponData();
     ComboActionMontage = Melee->ComboActionMontage;
     ComboActionData = Melee->ComboActionData;
+}
+
+void AMeleeWeapon::OnUnequip()
+{
+    Super::OnUnequip();
 }
 
 void AMeleeWeapon::StartAttack()
@@ -76,6 +81,7 @@ void AMeleeWeapon::SetComboCheckTimer()
 {
     // 현재 몇 콤보인가? (콤보액션 데이터에셋의 인덱스 상)
     int32 ComboIndex = CurCombo - 1;
+
     ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
     const float AttackSpeedRate = 1.0f;
     // 다음 콤보 입력으로 인정해줄 시간(초)

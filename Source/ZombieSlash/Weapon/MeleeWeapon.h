@@ -15,7 +15,9 @@ class ZOMBIESLASH_API AMeleeWeapon : public AWeaponBase
 	GENERATED_BODY()
 
 protected:
-    virtual void BeginPlay() override;
+    virtual void OnEquip() override;
+    virtual void OnUnequip() override;
+
 
 //protected:
 //    float AttackRange;

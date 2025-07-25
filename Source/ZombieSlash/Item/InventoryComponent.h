@@ -33,8 +33,20 @@ public:
 	}
 };
 
+USTRUCT(BlueprintType)
+struct FWeaponSlot
+{
+	GENERATED_BODY()
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, const class UWeaponData*, NewWeapon);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<class UWeaponData> WeaponData; // 무기 데이터
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<class AWeaponBase> WeaponActor; // 스폰된 무기 액터
+};
+
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSlotChanged, const class UWeaponData*, NewWeapon);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
@@ -44,7 +56,7 @@ class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
 public:	
 	UInventoryComponent();
 	
-	FOnWeaponChanged OnWeaponChanged;
+	FOnWeaponSlotChanged OnWeaponSlotChanged;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -59,7 +71,8 @@ public:
 	// Weapon Slot Section
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TArray<TObjectPtr<UWeaponData>> WeaponSlots; // 무기 슬롯
+	//TArray<TObjectPtr<class WeaponData>> WeaponSlots; // 무기 슬롯
+	TArray<FWeaponSlot> WeaponSlots; // 무기 슬롯
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	int32 WeaponSlotCount = 2;
@@ -77,7 +90,10 @@ public:
 	bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
 
 	UFUNCTION(BlueprintCallable)
-	const UWeaponData* GetCurWeapon() const;
+	const UWeaponData* GetCurWeaponData() const;
+
+	UFUNCTION(BlueprintCallable)
+	void InitializeWeaponSlots();
 
 
 	// Inventory Logic

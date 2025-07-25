@@ -32,6 +32,12 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "Ammo")
     int32 MaxAmmo;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Particle")
+    TObjectPtr<UParticleSystem> ImpactEffect;
+        
+    UPROPERTY(EditDefaultsOnly, Category = "Particle")
+    TObjectPtr<UParticleSystem> MuzzleFlash;
+
 public:
     virtual void StartAttack() override;
     //virtual bool CanAttack() const override;

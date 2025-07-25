@@ -19,24 +19,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class UWeaponData> WeaponData;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<class USceneComponent> SceneComponent;
+    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     TObjectPtr<UStaticMeshComponent> WeaponMeshComponent;
 
-
-    // 플레이어캐릭터에 IWeaponInterface 장착시켜서 Getter 구현
-
-    // 캐릭터에 무기액터 부착(스폰) 구현
-    // UPROPERTY(EditDefaultsOnly)
-    //TSubclassOf<class AWeaponBase> WeaponClass;
-    //UPROPERTY()
-    ///TObjectPtr<class AWeaponBase> Weapon;
-    //---
-    //Begin Play
-    // Weapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
-    // 이후 Weapon의 타입에 따라 다른 소켓에 붙도록 한다
-    // Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, Weapon->GetSocketName());
-    // Weapon->SetOwner(this);
-    // 캐릭터 공격시 캐릭터베이스의 함수 말고 Weapon의 함수 사용하도록 변경 후 테스트
     // 마우스휠로 무기 바꾸는 input 추가
     // 총기 애니메이션 받고 총 전용 ABP 제작
     // 새로 장착한 무기들 Spawn

@@ -6,8 +6,7 @@
 #include "Item/GunData.h"
 #include "Engine/DamageEvents.h"
 #include "Physics/ZSCollision.h"
-
-
+#include "Interface/CharacterWeaponInterface.h"
 
 void AGunWeapon::BeginPlay()
 {
@@ -23,6 +22,9 @@ void AGunWeapon::OnEquip()
 {
 	Super::OnEquip();
 	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport
+
+	// 소켓과 본 위치 조정
+	// 에임 카메라 비활성화
 }
 void AGunWeapon::OnUnequip()
 {
@@ -36,11 +38,13 @@ void AGunWeapon::StartAttack()
 
 void AGunWeapon::Fire()
 {
-	/*UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, Mesh, TEXT("MuzzleFlashSocket"));
+	//UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, WeaponMeshComponent->GetStaticMesh(), TEXT("MuzzleFlashSocket"));
+
+	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 
 	if (!OwnerCharacter) return;
 
-	AController* OwnerController = OwnerCharacter->GetController();
+	AController* OwnerController = OwnerCharacter->GetWeaponOwnerController();
 	if (!OwnerController) return;
 
 	FVector Location;
@@ -54,7 +58,7 @@ void AGunWeapon::Fire()
 
 	if (bSuccess)
 	{
-		float Damage = OwningPlayer->GetTotalStat().Attack;
+		float Damage = OwnerCharacter->GetWeaponOwnerStat().Attack;
 
 		FVector ShotDirection = -Rotation.Vector();
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.Location, ShotDirection.Rotation());
@@ -65,5 +69,5 @@ void AGunWeapon::Fire()
 			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
 			Actor->TakeDamage(Damage, DamageEvent, OwnerController, this);
 		}
-	}*/
+	}
 }

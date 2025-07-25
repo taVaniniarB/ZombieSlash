@@ -9,8 +9,11 @@ AWeaponBase::AWeaponBase()
 {
 	SocketName = TEXT("hand_rSocket");
 
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponRoot"));
+	RootComponent = SceneComponent;
+
 	WeaponMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
-	RootComponent = WeaponMeshComponent;
+	WeaponMeshComponent->SetupAttachment(RootComponent);
 }
 
 void AWeaponBase::InitializeWeapon(UWeaponData* InWeaponData, AActor* InOwner)

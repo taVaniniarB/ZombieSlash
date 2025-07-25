@@ -69,7 +69,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> HealAction;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> WeaponSwitchAction;
 
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -78,8 +79,6 @@ protected:
 
 	void PickupItem();
 	void UseHealItem();
-
-	
 
 	//ECharacterControlType CurrentCharacterControlType;
 
@@ -98,14 +97,11 @@ protected:
 	
 	// Weapon Section
 protected:
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	//TObjectPtr<UStaticMeshComponent> WeaponMesh;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AWeaponBase> WeaponClass;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TObjectPtr<class AWeaponBase> CurWeapon;
+	TObjectPtr<class AWeaponBase> CurWeapon; // 현재 캐릭터가 들고 있는 무기
+
+	UFUNCTION()
+	void SwitchWeapon(const FInputActionInstance& Value);
 
 	UFUNCTION()
 	void HandleWeaponChanged(const UWeaponData* Weapon);
@@ -114,6 +110,7 @@ protected:
 protected:
 	virtual void SetupHUDWidget(class UZSHUDWidget* InHUDWidget) override;
 
+	// Attack Target
 protected:
 	UFUNCTION(BlueprintCallable)
 	AActor* GetTargetActor();
