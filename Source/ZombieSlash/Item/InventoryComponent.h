@@ -4,18 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-
-//#include "ItemPickup.h"
-
 #include "InventoryComponent.generated.h"
-
 
 USTRUCT(BlueprintType)
 struct FInventorySlot
 {
 	GENERATED_BODY()
 
-	FInventorySlot(const UItemData* InItemData, int32 InQuantity)
+	FInventorySlot(UItemData* InItemData, int32 InQuantity)
 		: ItemData(InItemData), Quantity(InQuantity)
 	{}
 
@@ -24,12 +20,21 @@ struct FInventorySlot
 	{}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<const class UItemData> ItemData;
+	TObjectPtr<class UItemData> ItemData;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 Quantity;
+
+public:
+	bool IsValid()
+	{
+		if (ItemData && Quantity > 0) return true;
+		return false;
+	}
 };
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, const class UWeaponData*, NewWeapon);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
@@ -38,6 +43,8 @@ class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
 
 public:	
 	UInventoryComponent();
+	
+	FOnWeaponChanged OnWeaponChanged;
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -49,26 +56,34 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 CurSlotCount = 0;
 
-	UPROPERTY()
+	// Weapon Slot Section
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	TArray<TObjectPtr<UWeaponData>> WeaponSlots; // 무기 슬롯
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	int32 WeaponSlotCount = 2;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	int32 CurWeaponSlotIdx = 0; // 현재 장착된 슬롯 인덱스
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FInventorySlot EquippedWeaponSlot1;
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 무기가 바뀌는 로직 호출
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FInventorySlot EquippedWeaponSlot2;
-
-	//UPROPERTY()
-	//TArray<TObjectPtr<const class UWeaponData>> EquippedWeapons;
-
-	//UFUNCTION()
-	//const TArray<TObjectPtr<const class UWeaponData>>& GetEquippedWeapons() const;
+	UFUNCTION(BlueprintCallable)
+	bool SwitchWeapon(int32 SlotIdx);
 
 	UFUNCTION(BlueprintCallable)
 	bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
 
 	UFUNCTION(BlueprintCallable)
-	bool AddItem(const UItemData* ItemData, int32 Quantity);
+	const UWeaponData* GetCurWeapon() const;
+
+
+	// Inventory Logic
+public:
+	UFUNCTION(BlueprintCallable)
+	bool AddItem(UItemData* ItemData, int32 Quantity);
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetItemCount(FName ItemID) const;

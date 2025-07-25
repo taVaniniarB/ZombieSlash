@@ -13,6 +13,8 @@
 #include "Item/InventoryComponent.h"
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
+#include "Item/GunData.h"
+#include "Weapon/WeaponBase.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "UI/ZSHUDWidget.h"
 
@@ -71,6 +73,10 @@ ACharacterPlayer::ACharacterPlayer()
 		HealAction = InputActionHealRef.Object;
 	}
 
+	// Weapon Component
+	//WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	//WeaponMesh->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 
@@ -81,11 +87,6 @@ void ACharacterPlayer::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateClosestItem();
-	/*if (ClosestItem)
-	{
-		IInteractWidgetInterface* InteractWidget = Cast<IInteractWidgetInterface>(GetController());
-		InteractWidget->UpdateInteractWidget(ClosestItem->ItemData->Name);
-	}*/
 }
 
 void ACharacterPlayer::BeginPlay()
@@ -100,13 +101,23 @@ void ACharacterPlayer::BeginPlay()
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("subsystem Not found!!"));
-
-		}
 		EnableInput(PlayerController);
 	}
+
+	// Weapon Actor Setting
+	//CurWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
+	CurWeapon = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[0]->WeaponActorClass);
+	CurWeapon->InitializeWeapon(Inventory->WeaponSlots[0], this);
+	CurWeapon->OnEquip();
+	Stat->SetModifierStat(Inventory->WeaponSlots[0]->ModifierStat);
+	CurWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurWeapon->SocketName);
+}
+
+void ACharacterPlayer::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	Inventory->OnWeaponChanged.AddDynamic(this, &ACharacterPlayer::HandleWeaponChanged);
 }
 
 void ACharacterPlayer::SetDead()
@@ -175,6 +186,15 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 
 void ACharacterPlayer::Attack()
 {
+	//if (CurWeapon->WeaponType == EWeaponType::Gun)
+	//{
+	//	//Fire();
+	//	return;
+	//}
+	//else
+	//{
+	//
+	// CurWeapon->StartAttack();
 	ProcessComboCommand();
 }
 
@@ -185,7 +205,6 @@ void ACharacterPlayer::PickupItem()
 		UE_LOG(LogTemp, Warning, TEXT("OverlappingItems was 0"));
 	}
 
-	//UpdateClosestItem();
 	if (ClosestItem)
 	{
 		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData, ClosestItem->Quantity);
@@ -212,35 +231,29 @@ void ACharacterPlayer::UseHealItem()
 	// Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
 }
 
-void ACharacterPlayer::EquipWeapon(int32 WeaponSlotNum)
+void ACharacterPlayer::HandleWeaponChanged(const UWeaponData* Weapon) // 클래스 정보가 오는 게 나은가? 혹은 인덱스
 {
-	
-	UWeaponData* WeaponData = Cast<UWeaponData>(EquippedWeapons[WeaponSlotNum]);
-	if (WeaponData)
+	if (!Weapon)
 	{
-		/*if (WeaponData->WeaponMesh.IsPending())
-		{
-			WeaponData->WeaponMesh.LoadSynchronous();
-		}*/
-		Weapon->SetStaticMesh(WeaponData->WeaponMesh.Get());
-		Stat->SetModifierStat(WeaponData->ModifierStat);
+		UE_LOG(LogTemp, Warning, TEXT("Player - HandleWeaponChanged - Weapon was Null"));
+		return;
 	}
-}
-
-void ACharacterPlayer::ChangeWeaponSlot()
-{
-	// 그냥 인벤토리에서 Getter만드는편이 좋을지도
-	const UWeaponData* Slot1Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot1.ItemData);
-	const UWeaponData* Slot2Weapon = Cast<UWeaponData>(Inventory->EquippedWeaponSlot2.ItemData);
 	
-	// 플레이어는 인벤토리 내 슬롯 개수만한 무기 배열을 가진다 (TArray<UItemData> EquippedWeapons)
-	// 현재 사용 중인 슬롯 인덱스: CurWeaponSlotIdx
+	//WeaponMesh->SetStaticMesh(Weapon->WeaponMesh); //액터 스폰 방식으로 바꾸면 필요없을듯
+	Stat->SetModifierStat(Weapon->ModifierStat);
 
-	// EquippedWeapons[0] = Slot1Weapon;
-	// EquippedWeapons[1] = Slot2Weapon;
-	
-	// 재장착 함수 호출
-	EquipWeapon(CurWeaponSlotIdx);
+	CurWeapon->OnUnequip();
+
+	// 액터가 스스로 처리
+	//	// 소켓과 본 위치 조정
+	//	// 에임 카메라 비활성화
+	//	// UI (크로스헤어, 총알)
+
+	// 슬롯인덱스 수정
+	AWeaponBase* NewWeapon = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[0]->WeaponActorClass);
+	NewWeapon->InitializeWeapon(Inventory->WeaponSlots[0], this);
+	NewWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, NewWeapon->SocketName);
+	NewWeapon->OnEquip();
 }
 
 void ACharacterPlayer::AddOverlappingItem(AItemPickup* InItemData)

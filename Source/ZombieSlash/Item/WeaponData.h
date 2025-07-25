@@ -7,6 +7,14 @@
 #include "GameData/CharacterStat.h"
 #include "WeaponData.generated.h"
 
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	Melee = 0,
+	Gun,
+};
+
+
 /**
  * 
  */
@@ -19,8 +27,15 @@ public:
 	UWeaponData();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TObjectPtr<UStaticMesh> WeaponMesh;
+	EWeaponType WeaponType;
+
+	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	TObjectPtr<UStaticMesh> WeaponMesh;*/
 
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FCharacterStat ModifierStat;
+
+	// WeaponData.h
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	TSubclassOf<class AWeaponBase> WeaponActorClass;
 };

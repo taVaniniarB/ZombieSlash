@@ -36,10 +36,6 @@ ACharacterBase::ACharacterBase()
 
 	// Stat Component
 	Stat = CreateDefaultSubobject<UCharacterStatComponent>(TEXT("Stat"));
-
-	// Weapon Component
-	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Weapon"));
-	Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 }
 
 void ACharacterBase::PostInitializeComponents()
@@ -160,9 +156,9 @@ void ACharacterBase::AttackHitCheck()
 	// 무시할 액터 (이 경우, 자기 자신)
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
-	const float AttackRange = 45.f;
+	const float AttackRange = Stat->GetTotalStat().AttackRange;
 	const float AttackRadius = 50.f;
-	const float AttackDamage = 30.f;
+	const float AttackDamage = Stat->GetTotalStat().Attack;
 
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * (GetCapsuleComponent()->GetScaledCapsuleRadius());
 	const FVector End = Start + GetActorForwardVector() * AttackRange;
@@ -216,4 +212,14 @@ void ACharacterBase::SetupCharacterWidget(UZSUserWidget* InWidget)
 		Stat->OnHPChanged.AddUObject(HPBarWidget, &UHPBarWidget::UpdateHpBar);
 		Stat->OnStatChanged.AddUObject(HPBarWidget, &UHPBarWidget::UpdateStat);
 	}
+}
+
+FCharacterStat ACharacterBase::GetWeaponOwnerStat() const
+{
+	return Stat->GetTotalStat();
+}
+
+float ACharacterBase::GetWeaponOwnerCapsuleRadius() const
+{
+	return GetCapsuleComponent()->GetScaledCapsuleRadius();
 }

@@ -7,11 +7,12 @@
 #include "Interface/AnimationAttackInterface.h"
 #include "Interface/CharacterWidgetInterface.h"
 #include "Interface/CharacterStatInterface.h"
+#include "Interface/CharacterWeaponInterface.h"
 #include "CharacterBase.generated.h"
 
 UCLASS()
 class ZOMBIESLASH_API ACharacterBase : public ACharacter, 
-	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface
+	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface, public ICharacterWeaponInterface
 {
 	GENERATED_BODY()
 
@@ -70,9 +71,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCharacterStatComponent> Stat;
 
-	// Weapon Section
+	// Weapon Interface
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UStaticMeshComponent> Weapon;
-
+	virtual struct FCharacterStat GetWeaponOwnerStat() const override;
+	virtual class AController* GetWeaponOwnerController() const override { return GetController(); };
+	virtual class UAnimInstance* GetWeaponOwnerAnimInstance() const override { return GetMesh()->GetAnimInstance(); }
+	virtual FVector GetWeaponOwnerLocation() const override { return GetActorLocation(); }
+	virtual FVector GetWeaponOwnerForwardVector() const { return GetActorForwardVector(); }
+	virtual float GetWeaponOwnerCapsuleRadius() const override;
 };

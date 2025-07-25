@@ -24,6 +24,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
+
 	virtual void SetDead() override;
 
 public:
@@ -76,7 +78,8 @@ protected:
 
 	void PickupItem();
 	void UseHealItem();
-	void EquipWeapon(int32 WeaponSlotNum);
+
+	
 
 	//ECharacterControlType CurrentCharacterControlType;
 
@@ -94,14 +97,19 @@ protected:
 	TObjectPtr<class UInventoryComponent> Inventory;
 	
 	// Weapon Section
-	UPROPERTY()
-	TArray<TObjectPtr<class UItemData>> EquippedWeapons;
-	UPROPERTY()
-	int32 CurWeaponSlotIdx;
+protected:
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = "true"))
+	//TObjectPtr<UStaticMeshComponent> WeaponMesh;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AWeaponBase> WeaponClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	TObjectPtr<class AWeaponBase> CurWeapon;
+
 	UFUNCTION()
-	void ChangeWeaponSlot();
-
-
+	void HandleWeaponChanged(const UWeaponData* Weapon);
+	
 	// HUD Section
 protected:
 	virtual void SetupHUDWidget(class UZSHUDWidget* InHUDWidget) override;
