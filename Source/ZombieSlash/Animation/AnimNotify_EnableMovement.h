@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AnimNotify_RootMotionRotation.generated.h"
+#include "AnimNotify_EnableMovement.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ZOMBIESLASH_API UAnimNotify_RootMotionRotation : public UAnimNotify
+class ZOMBIESLASH_API UAnimNotify_EnableMovement : public UAnimNotify
 {
 	GENERATED_BODY()
 

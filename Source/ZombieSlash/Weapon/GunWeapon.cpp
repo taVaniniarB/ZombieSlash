@@ -38,7 +38,8 @@ void AGunWeapon::StartAttack()
 
 void AGunWeapon::Fire()
 {
-	//UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, WeaponMeshComponent->GetStaticMesh(), TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnSoundAttached(MuzzleSound, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
 
 	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 

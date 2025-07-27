@@ -9,6 +9,8 @@
 #include "Engine/DamageEvents.h"
 #include "UI/HPBarWidget.h"
 #include "CharacterStat/CharacterStatComponent.h"
+#include "Animation/ZSAnimInstanse.h"
+
 
 // Sets default values
 ACharacterBase::ACharacterBase()
@@ -145,6 +147,13 @@ void ACharacterBase::ComboCheck()
 		SetComboCheckTimer();
 		HasNextComboCommand = false;
 	}
+}
+
+void ACharacterBase::SetRunMode()
+{
+	bRunMode = !bRunMode;
+	Cast<UZSAnimInstanse>(GetMesh()->GetAnimInstance())->SetRunMode(bRunMode);
+	GetCharacterMovement()->MaxWalkSpeed = bRunMode ? 400.f : 300.f;
 }
 
 void ACharacterBase::AttackHitCheck()

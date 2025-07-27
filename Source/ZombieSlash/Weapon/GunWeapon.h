@@ -23,8 +23,11 @@ public:
 
 
 protected:
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly)
     float MaxRange;
+
+    UPROPERTY(BlueprintReadOnly)
+    float CoolTime;
 
     UPROPERTY(BlueprintReadOnly, Category = "Ammo")
     int32 CurAmmo;
@@ -37,6 +40,9 @@ protected:
         
     UPROPERTY(EditDefaultsOnly, Category = "Particle")
     TObjectPtr<UParticleSystem> MuzzleFlash;
+
+    UPROPERTY(EditAnywhere, Category = "Sound")
+    TObjectPtr<USoundBase> MuzzleSound;
 
 public:
     virtual void StartAttack() override;

@@ -10,6 +10,7 @@
 #include "Interface/CharacterWeaponInterface.h"
 #include "CharacterBase.generated.h"
 
+
 UCLASS()
 class ZOMBIESLASH_API ACharacterBase : public ACharacter, 
 	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface, public ICharacterWeaponInterface
@@ -47,6 +48,10 @@ protected:
 	// 이전에 입력 커맨드가 들어왔는가?
 	// 내부 로직 구현에서만 사용할 변수이기에 UPROPERTY 하지 않음. 또한 그렇기게 uint8로 선언할 필요도 없다.
 	bool HasNextComboCommand = false;
+
+public:
+	void SetRunMode();
+	bool bRunMode = false;
 
 
 	// Dead Section

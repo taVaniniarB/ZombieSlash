@@ -25,13 +25,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     TObjectPtr<UStaticMeshComponent> WeaponMeshComponent;
 
-    // 마우스휠로 무기 바꾸는 input 추가
-    // 총기 애니메이션 받고 총 전용 ABP 제작
-    // 새로 장착한 무기들 Spawn
-    // 현재 무기에 대해 OnEquip 호출, 슬롯 내 다른 무기는 OnUnequip 호출
-    // 무기 스위치 시 적절히 On/Unequip 호출
-    // 인벤토리 내 무기슬롯에 변동있을 시 기존 슬롯의 무기들 Destroy
-
 public:
     // 무기 초기화 - 데이터로부터 설정값들을 가져옴
     virtual void InitializeWeapon(UWeaponData* InWeaponData, AActor* InOwner);
@@ -43,6 +36,7 @@ public:
     virtual void StopAttack() {}
     virtual bool CanAttack() const { return true; }
 
+    UWeaponData* GetWeaponData() const { return WeaponData; }
 
     FName SocketName;
 };

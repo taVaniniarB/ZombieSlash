@@ -56,6 +56,9 @@ void AMeleeWeapon::ComboActionBegin()
     }
     UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
     AnimInst->Montage_Play(ComboActionMontage, 1.0f); // 犁积且 根鸥林, 犁积 加档
+
+    AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+    
     FOnMontageEnded EndDelegate;
     EndDelegate.BindUObject(this, &AMeleeWeapon::ComboActionEnd);
     AnimInst->Montage_SetEndDelegate(EndDelegate, ComboActionMontage);
@@ -110,6 +113,11 @@ void AMeleeWeapon::ComboCheck()
         AnimInst->Montage_JumpToSection(NextSection, ComboActionMontage);
         SetComboCheckTimer();
         bHasNextComboCommand = false;
+
+        if (AController* PC = OwnerCharacter->GetWeaponOwnerController())
+        {
+            PC->SetIgnoreMoveInput(false);
+        }
     }
 }
 

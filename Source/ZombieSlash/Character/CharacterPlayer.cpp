@@ -51,6 +51,11 @@ ACharacterPlayer::ACharacterPlayer()
 	{
 		LookAction = InputActionLookRef.Object;
 	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionRunRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Run.IA_Run'"));
+	if (nullptr != InputActionRunRef.Object)
+	{
+		RunAction = InputActionRunRef.Object;
+	}
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionAttackRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Attack.IA_Attack'"));
 	if (nullptr != InputActionAttackRef.Object)
 	{
@@ -146,6 +151,9 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Look);
+		
+		// Run
+		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ACharacterBase::SetRunMode);
 
 		// Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Attack);
@@ -177,6 +185,20 @@ void ACharacterPlayer::Move(const FInputActionValue& Value)
 
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
+
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	if (AnimInst->IsAnyMontagePlaying())
+	{
+		FName CurrentSection = AnimInst->Montage_GetCurrentSection();
+		FString SectionStr = CurrentSection.ToString();
+
+		if (SectionStr.StartsWith(TEXT("ExitSection")))
+		{
+			UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage();
+			AnimInst->Montage_Stop(0.2f, Montage);
+		}
+	}
+
 }
 
 void ACharacterPlayer::Look(const FInputActionValue& Value)
@@ -249,10 +271,6 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 		if (Inventory->SwitchWeapon(NewIndex))
 		{
 			break;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("SwitchWeapon Failed"));
 		}
 	}
 
@@ -361,8 +379,8 @@ AActor* ACharacterPlayer::GetTargetActor()
 
 				// ------ 가중합 ------
 				const float Score =
-					DistScore * 0.50f +
-					AngleScore * 0.30f +
+					DistScore * 0.60f +
+					AngleScore * 0.20f +
 					StickyScore * 0.20f;
 
 				if (Score > BestScore)

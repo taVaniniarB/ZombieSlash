@@ -29,9 +29,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	EWeaponType WeaponType;
 
-	/*UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	TObjectPtr<UStaticMesh> WeaponMesh;*/
-
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FCharacterStat ModifierStat;
 

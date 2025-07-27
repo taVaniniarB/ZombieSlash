@@ -16,6 +16,9 @@ class ZOMBIESLASH_API UZSAnimInstanse : public UAnimInstance
 public:
 	UZSAnimInstanse();
 
+
+	void SetRunMode(bool bRunMode) { bIsRunMode = bRunMode; }
+
 protected:
 	virtual void NativeInitializeAnimation() override;
 
@@ -32,6 +35,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float GroundSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsRunMode : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsIdle : 1;

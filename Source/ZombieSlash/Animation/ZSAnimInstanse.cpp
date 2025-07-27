@@ -34,4 +34,8 @@ void UZSAnimInstanse::NativeUpdateAnimation(float DeltaSeconds)
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
 	}
+	if (bIsIdle)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("IsIdle"));
+	}
 }
