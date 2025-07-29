@@ -9,6 +9,9 @@ UZSAnimInstanse::UZSAnimInstanse()
 {
 	MovingThreshould = 3.0f;
 	JumpingThreshould = 100.0f;
+
+	bIsZooming = false;
+	bIsAiming = false;
 }
 
 void UZSAnimInstanse::NativeInitializeAnimation()
@@ -36,7 +39,7 @@ void UZSAnimInstanse::NativeUpdateAnimation(float DeltaSeconds)
 
 		if (GroundSpeed > 0 && FVector::ZeroVector != Movement->GetCurrentAcceleration())
 		{
-			Movement->RotationRate = FRotator(0.f, 500.f, 0.f);
+			Movement->RotationRate = FRotator(0.f, 400.f, 0.f);
 		}
 		else
 		{

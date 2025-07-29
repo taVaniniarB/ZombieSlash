@@ -24,4 +24,6 @@ class ZOMBIESLASH_API IWeaponAnimInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void SetCurWeaponType(EWeaponType InWeaponType) = 0;
+	virtual void SetIsAiming(uint8 InIsAiming) = 0;
+	virtual void SetIsZooming(uint8 InIsZooming) = 0;
 };

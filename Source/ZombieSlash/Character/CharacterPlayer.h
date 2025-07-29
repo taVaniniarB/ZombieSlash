@@ -7,7 +7,23 @@
 #include "InputActionValue.h"
 #include "Interface/CharacterItemInterface.h"
 #include "Interface/CharacterHUDInterface.h"
+#include "Enums/WeaponType.h"
 #include "CharacterPlayer.generated.h"
+
+UENUM()
+enum class EGunState : uint8
+{
+	Ready = 0,
+	Aim
+};
+
+UENUM()
+enum class EMeleeState : uint8
+{
+	Default = 0,
+	Parry,
+};
+
 
 /**
  *
@@ -30,6 +46,8 @@ protected:
 
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	uint8 GetIsAiming() const { return bIsAiming; }
 
 	// Character Control Section
 protected:
@@ -85,13 +103,42 @@ protected:
 	void PickupItem();
 	void UseHealItem();
 
+	// Gun
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputMappingContext> GunIMC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> AimAction;
+	TObjectPtr<class UInputAction> ZoomAction;
 
+	UPROPERTY(VisibleInstanceOnly, Category = Gun)
+	EGunState CurGunState = EGunState::Ready;
+
+	EGunState GetGunState() { return CurGunState; }
+	void SetGunState(EGunState GunState, uint8 InIsZooming);
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
+	uint8 bIsZooming : 1;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
+	uint8 bIsAiming : 1;
+	
+	FTimerHandle ExitAimTimerHandle;
+	float ExitAimTime = 3.0f;
+	void EnterAimState();
+
+	void UpdateAnimAimState();
+	
+	void CameraAimZoom();
+	void ExitCameraAimZoom();
+
+	// Zoom, 총의 공격 입력이 있을 때 호출된다
+	UFUNCTION(BlueprintCallable, Category = Gun)
+	void ResetExitAimTimer();
+	UFUNCTION(BlueprintCallable, Category = Gun)
+	void ExitAimState();
+
+	// Melee
 protected:
+	EMeleeState CurMeleeStance = EMeleeState::Default;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputMappingContext> MeleeIMC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
@@ -124,9 +171,6 @@ protected:
 
 	UFUNCTION()
 	void HandleWeaponChanged(const UWeaponData* Weapon);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	uint8 bIsAimming : 1;
 	
 	// HUD Section
 protected:

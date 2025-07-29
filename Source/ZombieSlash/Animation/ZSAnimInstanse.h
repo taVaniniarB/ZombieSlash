@@ -21,6 +21,8 @@ public:
 
 	void SetRunMode(bool bRunMode) { bIsRunMode = bRunMode; }
 	void SetCurWeaponType(EWeaponType InWeaponType) { CurWeaponType= InWeaponType; }
+	void SetIsAiming(uint8 InIsAiming) { bIsAiming = InIsAiming; }
+	void SetIsZooming(uint8 InIsZooming) { bIsZooming = InIsZooming; }
 
 protected:
 	virtual void NativeInitializeAnimation() override;
@@ -53,6 +55,11 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsJumping : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsAiming : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsZooming : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float JumpingThreshould;

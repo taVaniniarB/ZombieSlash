@@ -17,6 +17,7 @@
 #include "Weapon/WeaponBase.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "UI/ZSHUDWidget.h"
+#include "Interface/WeaponAnimInterface.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
@@ -76,7 +77,7 @@ ACharacterPlayer::ACharacterPlayer()
 	{
 		WeaponSwitchAction = InputActionSwitchWeaponRef.Object;
 	}
-	// Aim은 블루프린트에서 처리
+	// Zoom은 블루프린트에서 처리
 
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
@@ -116,8 +117,9 @@ void ACharacterPlayer::BeginPlay()
 	}
 	CurWeapon = Inventory->WeaponSlots[0].WeaponActor;
 	CurWeapon->OnEquip();
-	
+
 	Stat->SetModifierStat(Inventory->WeaponSlots[0].WeaponData->ModifierStat);
+	UpdateWeaponInputMapping(CurWeapon->GetWeaponType());
 }
 
 void ACharacterPlayer::PostInitializeComponents()
@@ -153,7 +155,7 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Look);
-		
+
 		// Run
 		EnhancedInputComponent->BindAction(RunAction, ETriggerEvent::Triggered, this, &ACharacterBase::SetRunMode);
 
@@ -165,9 +167,13 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Pickup
 		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseHealItem);
-		
+
 		// Weapon Switch
 		EnhancedInputComponent->BindAction(WeaponSwitchAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::SwitchWeapon);
+
+		// Zoom
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Ongoing, this, &ACharacterPlayer::CameraAimZoom);
+		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Completed, this, &ACharacterPlayer::ExitCameraAimZoom);
 	}
 	else
 	{
@@ -218,6 +224,11 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 void ACharacterPlayer::Attack()
 {
 	CurWeapon->StartAttack();
+
+	if (EWeaponType::Gun == CurWeapon->GetWeaponType())
+	{
+		EnterAimState();
+	}
 }
 
 void ACharacterPlayer::PickupItem()
@@ -236,7 +247,7 @@ void ACharacterPlayer::PickupItem()
 			if (IsValid(Inventory->Items[i].ItemData))
 				UE_LOG(LogTemp, Warning, TEXT("%s, %d개, 슬롯: %d"), *Inventory->Items[i].ItemData->Name, Inventory->Items[i].Quantity, i);
 		}
-			
+
 		if (bSuccess)
 		{
 			OverlappingItems.Remove(ClosestItem);
@@ -248,9 +259,67 @@ void ACharacterPlayer::PickupItem()
 void ACharacterPlayer::UseHealItem()
 {
 	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
-	
+
 	Inventory->UseItem(Inventory->GetCurHealItemID());
 	//Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
+}
+
+void ACharacterPlayer::SetGunState(EGunState GunState, uint8 InIsZooming)
+{
+	CurGunState = GunState;
+	bIsZooming = InIsZooming;
+	if (EGunState::Aim == CurGunState)
+		bIsAiming = true;
+	else
+		bIsAiming = false;
+
+	UpdateAnimAimState();
+}
+
+void ACharacterPlayer::UpdateAnimAimState()
+{
+	IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
+	Anim->SetIsAiming(bIsAiming);
+	Anim->SetIsZooming(bIsZooming);
+}
+
+void ACharacterPlayer::EnterAimState()
+{
+	SetGunState(EGunState::Aim, bIsZooming);
+	ResetExitAimTimer();
+}
+
+void ACharacterPlayer::CameraAimZoom()
+{
+	SetGunState(EGunState::Aim, true);
+
+	ResetExitAimTimer();
+}
+
+void ACharacterPlayer::ExitCameraAimZoom()
+{
+	SetGunState(EGunState::Aim, false);
+}
+
+void ACharacterPlayer::ResetExitAimTimer()
+{
+	if (GetGunState() == EGunState::Aim)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ExitAimTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(
+			ExitAimTimerHandle,
+			this,
+			&ACharacterPlayer::ExitAimState,
+			ExitAimTime,
+			false
+		);
+	}
+}
+
+// ExitAim 타이머 종료 시 호출
+void ACharacterPlayer::ExitAimState()
+{
+	SetGunState(EGunState::Ready, false);
 }
 
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
@@ -260,7 +329,7 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	if (FMath::IsNearlyZero(ScrollValue)) return;
 	int32 Direction = ScrollValue > 0 ? 1 : -1;
 
-	if (bIsAimming) return;
+	if (bIsZooming) return;
 	if (IsPlayingRootMotion()) return;
 	if (!Inventory) return;
 
@@ -297,7 +366,7 @@ void ACharacterPlayer::HandleWeaponChanged(const UWeaponData* Weapon) // 클래�
 		UE_LOG(LogTemp, Warning, TEXT("Player - HandleWeaponChanged - Weapon was Null"));
 		return;
 	}
-	
+
 	Stat->SetModifierStat(Weapon->ModifierStat);
 
 	CurWeapon->OnUnequip();
@@ -305,6 +374,14 @@ void ACharacterPlayer::HandleWeaponChanged(const UWeaponData* Weapon) // 클래�
 	const int32 Idx = Inventory->CurWeaponSlotIdx;
 	CurWeapon = Inventory->WeaponSlots[Idx].WeaponActor;
 	CurWeapon->OnEquip();
+}
+
+void ACharacterPlayer::Parry()
+{
+	if (EWeaponType::Melee == CurWeapon->GetWeaponType())
+	{
+		//SetMeleeState(EMeleeState::Parry);
+	}
 }
 
 void ACharacterPlayer::UpdateWeaponInputMapping(EWeaponType NewWeaponType)
