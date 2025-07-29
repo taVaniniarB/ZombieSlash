@@ -14,6 +14,9 @@ class ZOMBIESLASH_API AMeleeWeapon : public AWeaponBase
 {
 	GENERATED_BODY()
 
+public:
+    AMeleeWeapon();
+
 protected:
     virtual void OnEquip() override;
     virtual void OnUnequip() override;

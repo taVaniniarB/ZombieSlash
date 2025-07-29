@@ -18,12 +18,21 @@ public:
 	UGunData();
 
 public:
-	UPROPERTY()
-	float MaxRange;
-
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	int32 MaxAmmo;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	float Delay;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Particle")
+	TObjectPtr<UParticleSystem> ImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Particle")
+	TObjectPtr<UParticleSystem> MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, Category = "Sound")
+	TObjectPtr<USoundBase> MuzzleSound;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TObjectPtr<UAnimMontage> ShootMontage;
 };

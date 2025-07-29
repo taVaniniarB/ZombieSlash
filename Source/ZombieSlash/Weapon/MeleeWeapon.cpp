@@ -9,6 +9,11 @@
 #include "Interface/CharacterWeaponInterface.h"
 
 
+AMeleeWeapon::AMeleeWeapon()
+{
+    SocketName = TEXT("Melee_Socket");
+}
+
 void AMeleeWeapon::OnEquip()
 {
     Super::OnEquip();

@@ -33,9 +33,14 @@ void UZSAnimInstanse::NativeUpdateAnimation(float DeltaSeconds)
 		bIsIdle = GroundSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
-	}
-	if (bIsIdle)
-	{
-		//UE_LOG(LogTemp, Warning, TEXT("IsIdle"));
+
+		if (GroundSpeed > 0 && FVector::ZeroVector != Movement->GetCurrentAcceleration())
+		{
+			Movement->RotationRate = FRotator(0.f, 500.f, 0.f);
+		}
+		else
+		{
+			Movement->RotationRate = FRotator::ZeroRotator;
+		}
 	}
 }

@@ -75,7 +75,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> WeaponSwitchAction;
 
+
 	void Move(const FInputActionValue& Value);
+	void ExitMontage();
 	void Look(const FInputActionValue& Value);
 
 	void Attack();
@@ -83,7 +85,21 @@ protected:
 	void PickupItem();
 	void UseHealItem();
 
-	//ECharacterControlType CurrentCharacterControlType;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputMappingContext> GunIMC;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> AimAction;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputMappingContext> MeleeIMC;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> ParryAction;
+	void Parry();
+
+protected:
+	void UpdateWeaponInputMapping(EWeaponType NewWeaponType);
 
 protected:
 	// Inventory Section
@@ -108,6 +124,9 @@ protected:
 
 	UFUNCTION()
 	void HandleWeaponChanged(const UWeaponData* Weapon);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	uint8 bIsAimming : 1;
 	
 	// HUD Section
 protected:

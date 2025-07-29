@@ -5,15 +5,8 @@
 #include "CoreMinimal.h"
 #include "Item/ItemData.h"
 #include "GameData/CharacterStat.h"
+#include "Enums/WeaponType.h"
 #include "WeaponData.generated.h"
-
-UENUM(BlueprintType)
-enum class EWeaponType : uint8
-{
-	Melee = 0,
-	Gun,
-};
-
 
 /**
  * 
@@ -26,7 +19,7 @@ class ZOMBIESLASH_API UWeaponData : public UItemData
 public:
 	UWeaponData();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, Category = Stat)

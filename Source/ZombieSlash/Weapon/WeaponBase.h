@@ -9,10 +9,10 @@
 UCLASS()
 class ZOMBIESLASH_API AWeaponBase : public AActor
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	AWeaponBase();
+    AWeaponBase();
 
 protected:
     // 무기 데이터에 대한 참조
@@ -21,7 +21,7 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<class USceneComponent> SceneComponent;
-    
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
     TObjectPtr<UStaticMeshComponent> WeaponMeshComponent;
 
@@ -37,6 +37,9 @@ public:
     virtual bool CanAttack() const { return true; }
 
     UWeaponData* GetWeaponData() const { return WeaponData; }
+    EWeaponType GetWeaponType() const { return WeaponData->WeaponType; }
+    FName GetSocketName() const { return SocketName; }
 
+protected:
     FName SocketName;
 };

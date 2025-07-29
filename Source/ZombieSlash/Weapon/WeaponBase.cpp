@@ -2,13 +2,14 @@
 
 
 #include "Weapon/WeaponBase.h"
+#include "GameFramework/Character.h" 
 #include "Interface/CharacterWeaponInterface.h"
+#include "Interface/WeaponAnimInterface.h"
+#include "Item/WeaponData.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
-	SocketName = TEXT("hand_rSocket");
-
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponRoot"));
 	RootComponent = SceneComponent;
 
@@ -26,6 +27,11 @@ void AWeaponBase::OnEquip()
 {
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(false);
+
+	ACharacter * Character = GetOwner<ACharacter>();
+	Character->GetMesh()->GetAnimInstance();
+	IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(Character->GetMesh()->GetAnimInstance());
+	Anim->SetCurWeaponType(WeaponData->WeaponType);
 }
 
 void AWeaponBase::OnUnequip()

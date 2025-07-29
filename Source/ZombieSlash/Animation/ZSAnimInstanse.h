@@ -4,13 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Enums/WeaponType.h"
+#include "Interface/WeaponAnimInterface.h"
 #include "ZSAnimInstanse.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ZOMBIESLASH_API UZSAnimInstanse : public UAnimInstance
+class ZOMBIESLASH_API UZSAnimInstanse : public UAnimInstance, public IWeaponAnimInterface
 {
 	GENERATED_BODY()
 public:
@@ -18,6 +20,7 @@ public:
 
 
 	void SetRunMode(bool bRunMode) { bIsRunMode = bRunMode; }
+	void SetCurWeaponType(EWeaponType InWeaponType) { CurWeaponType= InWeaponType; }
 
 protected:
 	virtual void NativeInitializeAnimation() override;
@@ -53,4 +56,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float JumpingThreshould;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	EWeaponType CurWeaponType;
 };

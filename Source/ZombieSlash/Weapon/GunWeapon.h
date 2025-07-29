@@ -14,6 +14,9 @@ class ZOMBIESLASH_API AGunWeapon : public AWeaponBase
 {
 	GENERATED_BODY()
 
+public:
+    AGunWeapon();
+
 protected:
     virtual void BeginPlay() override;
 
@@ -24,25 +27,10 @@ public:
 
 protected:
     UPROPERTY(BlueprintReadOnly)
-    float MaxRange;
-
-    UPROPERTY(BlueprintReadOnly)
     float CoolTime;
 
     UPROPERTY(BlueprintReadOnly, Category = "Ammo")
     int32 CurAmmo;
-    
-    UPROPERTY(BlueprintReadOnly, Category = "Ammo")
-    int32 MaxAmmo;
-
-    UPROPERTY(EditDefaultsOnly, Category = "Particle")
-    TObjectPtr<UParticleSystem> ImpactEffect;
-        
-    UPROPERTY(EditDefaultsOnly, Category = "Particle")
-    TObjectPtr<UParticleSystem> MuzzleFlash;
-
-    UPROPERTY(EditAnywhere, Category = "Sound")
-    TObjectPtr<USoundBase> MuzzleSound;
 
 public:
     virtual void StartAttack() override;

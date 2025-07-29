@@ -8,28 +8,33 @@
 #include "Physics/ZSCollision.h"
 #include "Interface/CharacterWeaponInterface.h"
 
+AGunWeapon::AGunWeapon()
+{
+	SocketName = TEXT("Handgun_Socket");
+}
+
 void AGunWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
 	const UGunData* Gun = GetGunData();
-	MaxRange = Gun->MaxRange;
-	MaxAmmo = Gun->MaxAmmo;
-	CurAmmo = MaxAmmo;
+	CurAmmo = Gun->MaxAmmo;
+
+	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport, Invisible
 }
 
 void AGunWeapon::OnEquip()
 {
 	Super::OnEquip();
-	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport
-
-	// 소켓과 본 위치 조정
-	// 에임 카메라 비활성화
+	
+	// Gun HUD Visible
+	// 에임 카메라 활성화
 }
 void AGunWeapon::OnUnequip()
 {
 	Super::OnUnequip();
-	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport
+	// Gun HUD Invisible
+	// 에임 카메라 비활
 }
 void AGunWeapon::StartAttack()
 {
@@ -38,37 +43,45 @@ void AGunWeapon::StartAttack()
 
 void AGunWeapon::Fire()
 {
-	UGameplayStatics::SpawnEmitterAttached(MuzzleFlash, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
-	UGameplayStatics::SpawnSoundAttached(MuzzleSound, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnEmitterAttached(GetGunData()->MuzzleFlash, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnSoundAttached(GetGunData()->MuzzleSound, WeaponMeshComponent, TEXT("MuzzleFlashSocket"));
 
 	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
-
 	if (!OwnerCharacter) return;
 
 	AController* OwnerController = OwnerCharacter->GetWeaponOwnerController();
 	if (!OwnerController) return;
 
+
+	UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
+	AnimInst->Montage_Play(GetGunData()->ShootMontage, 1.0f); // 재생할 몽타주, 재생 속도
+
+
 	FVector Location;
 	FRotator Rotation;
 	OwnerController->GetPlayerViewPoint(Location, Rotation);
 
-	FVector End = Location + Rotation.Vector() * MaxRange;
+	FVector End = Location + Rotation.Vector() * (OwnerCharacter->GetWeaponOwnerStat().AttackRange);
 
 	FHitResult Hit;
-	bool bSuccess = GetWorld()->LineTraceSingleByChannel(Hit, Location, End, CCHANNEL_ZSACTION);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetOwner());
+	bool bSuccess = GetWorld()->LineTraceSingleByChannel(Hit, Location, End, CCHANNEL_ZSACTION, QueryParams);
 
 	if (bSuccess)
 	{
 		float Damage = OwnerCharacter->GetWeaponOwnerStat().Attack;
 
 		FVector ShotDirection = -Rotation.Vector();
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.Location, ShotDirection.Rotation());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), GetGunData()->ImpactEffect, Hit.Location, ShotDirection.Rotation());
 
 		AActor* Actor = Hit.GetActor();
 		if (Actor)
 		{
 			FPointDamageEvent DamageEvent(Damage, Hit, ShotDirection, nullptr);
 			Actor->TakeDamage(Damage, DamageEvent, OwnerController, this);
+
+			UE_LOG(LogTemp, Warning, TEXT("%s Hit"), *Actor->GetName());
 		}
 	}
 }

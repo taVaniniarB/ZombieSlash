@@ -76,6 +76,8 @@ ACharacterPlayer::ACharacterPlayer()
 	{
 		WeaponSwitchAction = InputActionSwitchWeaponRef.Object;
 	}
+	// Aim은 블루프린트에서 처리
+
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 }
@@ -108,7 +110,7 @@ void ACharacterPlayer::BeginPlay()
 	{
 		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[i].WeaponData->WeaponActorClass);
 		Inventory->WeaponSlots[i].WeaponActor = WeaponInst;
-		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->SocketName);
+		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->GetSocketName());
 		WeaponInst->InitializeWeapon(Inventory->WeaponSlots[i].WeaponData, this);
 		WeaponInst->OnUnequip();
 	}
@@ -186,6 +188,11 @@ void ACharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 
+	ExitMontage();
+}
+
+void ACharacterPlayer::ExitMontage()
+{
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 	if (AnimInst->IsAnyMontagePlaying())
 	{
@@ -198,7 +205,6 @@ void ACharacterPlayer::Move(const FInputActionValue& Value)
 			AnimInst->Montage_Stop(0.2f, Montage);
 		}
 	}
-
 }
 
 void ACharacterPlayer::Look(const FInputActionValue& Value)
@@ -244,7 +250,7 @@ void ACharacterPlayer::UseHealItem()
 	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
 	
 	Inventory->UseItem(Inventory->GetCurHealItemID());
-	// Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
+	//Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
 }
 
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
@@ -252,9 +258,10 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	const float ScrollValue = Value.GetValue().Get<float>();
 
 	if (FMath::IsNearlyZero(ScrollValue)) return;
-
 	int32 Direction = ScrollValue > 0 ? 1 : -1;
 
+	if (bIsAimming) return;
+	if (IsPlayingRootMotion()) return;
 	if (!Inventory) return;
 
 	int32 TotalSlots = Inventory->WeaponSlotCount;
@@ -279,6 +286,7 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	CurWeapon = Inventory->WeaponSlots[NewIndex].WeaponActor;
 	Stat->SetModifierStat(Inventory->WeaponSlots[NewIndex].WeaponData->ModifierStat);
 	CurWeapon->OnEquip();
+	UpdateWeaponInputMapping(CurWeapon->GetWeaponType());
 }
 
 // OnWeaponChanged에 바인드됨 (삭제 고려)
@@ -297,6 +305,52 @@ void ACharacterPlayer::HandleWeaponChanged(const UWeaponData* Weapon) // 클래�
 	const int32 Idx = Inventory->CurWeaponSlotIdx;
 	CurWeapon = Inventory->WeaponSlots[Idx].WeaponActor;
 	CurWeapon->OnEquip();
+}
+
+void ACharacterPlayer::UpdateWeaponInputMapping(EWeaponType NewWeaponType)
+{
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
+		{
+			UEnhancedInputLocalPlayerSubsystem* Subsystem =
+				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer);
+
+			if (!Subsystem) return;
+
+			// 모두 제거 (중복 제거 방지)
+			if (GunIMC)
+			{
+				Subsystem->RemoveMappingContext(GunIMC);
+			}
+			if (MeleeIMC)
+			{
+				Subsystem->RemoveMappingContext(MeleeIMC);
+			}
+
+			// 새 무기에 해당하는 IMC 추가
+			switch (NewWeaponType)
+			{
+			case EWeaponType::Gun:
+				if (GunIMC)
+				{
+					Subsystem->AddMappingContext(GunIMC, 1);
+				}
+				break;
+
+			case EWeaponType::Melee:
+				if (MeleeIMC)
+				{
+					Subsystem->AddMappingContext(MeleeIMC, 1);
+				}
+				break;
+
+			default:
+				// 무기 없거나 다른 타입일 경우 IMC 없음
+				break;
+			}
+		}
+	}
 }
 
 void ACharacterPlayer::AddOverlappingItem(AItemPickup* InItemData)
