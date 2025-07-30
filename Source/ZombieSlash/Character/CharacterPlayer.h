@@ -10,14 +10,14 @@
 #include "Enums/WeaponType.h"
 #include "CharacterPlayer.generated.h"
 
-UENUM()
+UENUM(BlueprintType)
 enum class EGunState : uint8
 {
 	Ready = 0,
 	Aim
 };
 
-UENUM()
+UENUM(BlueprintType)
 enum class EMeleeState : uint8
 {
 	Default = 0,
@@ -40,7 +40,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void PostInitializeComponents() override;
 
 	virtual void SetDead() override;
 
@@ -48,13 +47,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	uint8 GetIsAiming() const { return bIsAiming; }
-
-	// Character Control Section
-protected:
-	//void ChangeCharacterControl();
-	//void SetCharacterControl(ECharacterControlType NewCharacterControlType);
-	//virtual void SetCharacterControlData(const class UABCharacterControlData* CharacterControlData) override;
-
 
 	// Camera Section
 protected:
@@ -80,18 +72,25 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> RunAction;
+	
+	// IMC CombatActions
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputMappingContext> CombatIMC;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> AttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> PickupAction;
-	
+	TObjectPtr<class UInputAction> WeaponSwitchAction;
+
+	// IMC Interaction
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> HealAction;
+	TObjectPtr<class UInputMappingContext> InteractionIMC;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> PickupAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> WeaponSwitchAction;
+	TObjectPtr<class UInputAction> HealAction;
 
 
 	void Move(const FInputActionValue& Value);
@@ -109,6 +108,8 @@ protected:
 	TObjectPtr<class UInputMappingContext> GunIMC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> ZoomAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UInputAction> ReloadAction;
 
 	UPROPERTY(VisibleInstanceOnly, Category = Gun)
 	EGunState CurGunState = EGunState::Ready;
@@ -131,10 +132,13 @@ protected:
 	void ExitCameraAimZoom();
 
 	// Zoom, 총의 공격 입력이 있을 때 호출된다
-	UFUNCTION(BlueprintCallable, Category = Gun)
 	void ResetExitAimTimer();
-	UFUNCTION(BlueprintCallable, Category = Gun)
 	void ExitAimState();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = Gun, Meta = (DisplayName = "OnGunStateChangedCpp"))
+	void K2_OnGunStateChanged(EGunState NewSsate);
+	void Reload();
+	virtual void EndReload() override;
 
 	// Melee
 protected:
@@ -146,7 +150,8 @@ protected:
 	void Parry();
 
 protected:
-	void UpdateWeaponInputMapping(EWeaponType NewWeaponType);
+	void UpdateWeaponIMC(EWeaponType NewWeaponType);
+	void ActiveCombatAction(bool bActive);
 
 protected:
 	// Inventory Section
@@ -157,9 +162,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
 	TObjectPtr<AItemPickup> ClosestItem;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInventoryComponent> Inventory;
 	
 	// Weapon Section
 protected:
@@ -168,9 +170,6 @@ protected:
 
 	UFUNCTION()
 	void SwitchWeapon(const FInputActionInstance& Value);
-
-	UFUNCTION()
-	void HandleWeaponChanged(const UWeaponData* Weapon);
 	
 	// HUD Section
 protected:

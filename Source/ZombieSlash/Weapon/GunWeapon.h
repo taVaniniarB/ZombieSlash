@@ -26,11 +26,14 @@ public:
 
 
 protected:
-    UPROPERTY(BlueprintReadOnly)
-    float CoolTime;
+    /*UPROPERTY(BlueprintReadOnly)
+    float CurDelay;*/
 
     UPROPERTY(BlueprintReadOnly, Category = "Ammo")
     int32 CurAmmo;
+
+    UPROPERTY()
+    TObjectPtr<class UInventoryComponent> Inventory;
 
 public:
     virtual void StartAttack() override;
@@ -38,11 +41,18 @@ public:
 
     // 총기 전용 기능들
     void Fire();
-    //void Reload();
-    FORCEINLINE bool HasAmmo() const { return CurAmmo >= 0 ? true : false; }
+    void Reload();
+    bool CanReload();
 
+    FTimerHandle FireTimerHandle;
+
+    void OnReloadMontageEnded(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+    FORCEINLINE bool HasAmmo() const { return CurAmmo >= 0 ? true : false; }
 
 private:
     // 총기 데이터로 캐스팅해서 사용
     const class UGunData* GetGunData() const { return Cast<UGunData>(WeaponData); }
+
+    bool bCanFire;
+    void SetCanFire() { bCanFire = true; }
 };

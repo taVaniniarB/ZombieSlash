@@ -17,9 +17,12 @@ AMeleeWeapon::AMeleeWeapon()
 void AMeleeWeapon::OnEquip()
 {
     Super::OnEquip();
-    const UMeleeData* Melee = GetMeleeWeaponData();
+    const UMeleeData* Melee = GetMeleeData();
     ComboActionMontage = Melee->ComboActionMontage;
     ComboActionData = Melee->ComboActionData;
+
+    ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
+    AttackSpeedRate = OwnerCharacter->GetWeaponOwnerStat().AttackSpeed;
 }
 
 void AMeleeWeapon::OnUnequip()
@@ -60,7 +63,7 @@ void AMeleeWeapon::ComboActionBegin()
         PC->SetIgnoreMoveInput(true);
     }
     UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
-    AnimInst->Montage_Play(ComboActionMontage, 1.0f); // 재생할 몽타주, 재생 속도
+    AnimInst->Montage_Play(ComboActionMontage, AttackSpeedRate); // 재생할 몽타주, 재생 속도
 
     AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
     
@@ -91,7 +94,9 @@ void AMeleeWeapon::SetComboCheckTimer()
     int32 ComboIndex = CurCombo - 1;
 
     ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
-    const float AttackSpeedRate = 1.0f;
+
+    ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
+
     // 다음 콤보 입력으로 인정해줄 시간(초)
     float ComboEffectiveTime = (ComboActionData->EffectiveFrameCount[ComboIndex] / ComboActionData->FrameRate) / AttackSpeedRate;
     // 이 값이 양수라면, 현재 콤보가 마지막 콤보는 아니었다는 뜻
@@ -126,6 +131,11 @@ void AMeleeWeapon::ComboCheck()
     }
 }
 
+const UMeleeData* AMeleeWeapon::GetMeleeData() const
+{
+    return Cast<UMeleeData>(WeaponData);
+}
+
 void AMeleeWeapon::AttackHitCheck()
 {
     // 원래 애니메이션 노티파이에 의해 호출되는 함수인데
@@ -140,7 +150,7 @@ void AMeleeWeapon::AttackHitCheck()
 //
 //
 //    // 데이터에서 공격 정보 가져오기
-//    UMeleeWeaponItemData* MeleeData = GetMeleeWeaponData();
+//    UMeleeWeaponItemData* MeleeData = GetMeleeData();
 //    if (!MeleeData)
 //    {
 //        return;

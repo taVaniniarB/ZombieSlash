@@ -18,14 +18,17 @@ class ZOMBIESLASH_API UWeaponData : public UItemData
 	
 public:
 	UWeaponData();
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EWeaponType WeaponType;
 
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FCharacterStat ModifierStat;
 
-	// WeaponData.h
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<class AWeaponBase> WeaponActorClass;
 };

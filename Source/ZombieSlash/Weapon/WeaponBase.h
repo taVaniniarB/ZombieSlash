@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Enums/WeaponType.h"
 #include "WeaponBase.generated.h"
 
 UCLASS()
@@ -37,7 +38,7 @@ public:
     virtual bool CanAttack() const { return true; }
 
     UWeaponData* GetWeaponData() const { return WeaponData; }
-    EWeaponType GetWeaponType() const { return WeaponData->WeaponType; }
+    EWeaponType GetWeaponType() const;
     FName GetSocketName() const { return SocketName; }
 
 protected:

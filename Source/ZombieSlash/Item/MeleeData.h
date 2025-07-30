@@ -16,6 +16,10 @@ class ZOMBIESLASH_API UMeleeData : public UWeaponData
 	
 public:
 	UMeleeData();
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
 
 public:
 	//float AttackRadius;

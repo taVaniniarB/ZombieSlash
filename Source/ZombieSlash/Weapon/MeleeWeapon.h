@@ -21,12 +21,6 @@ protected:
     virtual void OnEquip() override;
     virtual void OnUnequip() override;
 
-
-//protected:
-//    float AttackRange;
-//    float AttackRadius;
-//    float AttackDamage;
-
 protected:
     // 콤보 시스템 관련 변수들
     UPROPERTY(BlueprintReadOnly, Category = "Combo")
@@ -43,9 +37,11 @@ protected:
     UPROPERTY(BlueprintReadOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> ComboActionMontage;
 
+    UPROPERTY(BlueprintReadOnly)
+    float AttackSpeedRate;
+
 public:
     virtual void StartAttack() override;
-    //virtual bool CanAttack() const override;
 
     // 근접무기 전용 기능들
     void ProcessComboCommand();
@@ -58,5 +54,5 @@ private:
     void ComboCheck();
 
     // 근접무기 데이터로 캐스팅해서 사용
-    const class UMeleeData* GetMeleeWeaponData() const { return Cast<UMeleeData>(WeaponData); }
+    const class UMeleeData* GetMeleeData() const;
 };

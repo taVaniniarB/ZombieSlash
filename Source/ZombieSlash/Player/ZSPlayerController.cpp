@@ -20,7 +20,7 @@ AZSPlayerController::AZSPlayerController()
 		UE_LOG(LogTemp, Warning, TEXT("ZSHUDWidgetRef.Class was Null"));
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionInventoryRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Inventory.IA_Inventory'"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionInventoryRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Inventory.IA_Inventory'"));
 	if (nullptr != InputActionInventoryRef.Object)
 	{
 		InventoryAction = InputActionInventoryRef.Object;

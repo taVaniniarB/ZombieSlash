@@ -15,20 +15,27 @@
 #include "Item/WeaponData.h"
 #include "Item/GunData.h"
 #include "Weapon/WeaponBase.h"
+#include "Weapon/GunWeapon.h"
+#include "Weapon/MeleeWeapon.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "UI/ZSHUDWidget.h"
 #include "Interface/WeaponAnimInterface.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
+	SetCharacterID(TEXT("Player_Default"));
+
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.f;
+	CameraBoom->TargetArmLength = 200.f;
+	CameraBoom->SocketOffset = FVector(0.f, 45.f, 70.f);
+	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 22.f));
 	CameraBoom->bUsePawnControlRotation = true;
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->SetRelativeRotation(FRotator(-15.f, 0.f, 0.f));
 	FollowCamera->bUsePawnControlRotation = false;
 
 	// Input
@@ -57,30 +64,59 @@ ACharacterPlayer::ACharacterPlayer()
 	{
 		RunAction = InputActionRunRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionAttackRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Attack.IA_Attack'"));
+
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> CombatMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Combat.IMC_Combat'"));
+	if (nullptr != CombatMappingContextRef.Object)
+	{
+		CombatIMC = CombatMappingContextRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionAttackRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/CombatAction/IA_Attack.IA_Attack'"));
 	if (nullptr != InputActionAttackRef.Object)
 	{
 		AttackAction = InputActionAttackRef.Object;
 	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionPickupRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Pickup.IA_Pickup'"));
-	if (nullptr != InputActionPickupRef.Object)
-	{
-		PickupAction = InputActionPickupRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHealRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_Heal.IA_Heal'"));
-	if (nullptr != InputActionHealRef.Object)
-	{
-		HealAction = InputActionHealRef.Object;
-	}
-	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionSwitchWeaponRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/Actions/IA_SwitchWeapon.IA_SwitchWeapon'"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionSwitchWeaponRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/CombatAction/IA_SwitchWeapon.IA_SwitchWeapon'"));
 	if (nullptr != InputActionSwitchWeaponRef.Object)
 	{
 		WeaponSwitchAction = InputActionSwitchWeaponRef.Object;
 	}
-	// Zoom은 블루프린트에서 처리
 
-	// Inventory
-	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> InteractionMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Interaction.IMC_Interaction'"));
+	if (nullptr != InteractionMappingContextRef.Object)
+	{
+		InteractionIMC = InteractionMappingContextRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionPickupRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Pickup.IA_Pickup'"));
+	if (nullptr != InputActionPickupRef.Object)
+	{
+		PickupAction = InputActionPickupRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHealRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Heal.IA_Heal'"));
+	if (nullptr != InputActionHealRef.Object)
+	{
+		HealAction = InputActionHealRef.Object;
+	}
+	
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> GunMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Gun.IMC_Gun'"));
+	if (nullptr != GunMappingContextRef.Object)
+	{
+		GunIMC = GunMappingContextRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> ZoomActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/GunAction/IA_Zoom.IA_Zoom'"));
+	if (nullptr != ZoomActionRef.Object)
+	{
+		ZoomAction = ZoomActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/GunAction/IA_Reload.IA_Reload'"));
+	if (nullptr != ReloadActionRef.Object)
+	{
+		ReloadAction = ZoomActionRef.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> MeleeMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Melee.IMC_Melee'"));
+	if (nullptr != MeleeMappingContextRef.Object)
+	{
+		MeleeIMC = MeleeMappingContextRef.Object;
+	}
 }
 
 void ACharacterPlayer::Tick(float DeltaTime)
@@ -101,6 +137,8 @@ void ACharacterPlayer::BeginPlay()
 		{
 			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			Subsystem->AddMappingContext(InteractionIMC, 0);
+			Subsystem->AddMappingContext(CombatIMC, 0);
 		}
 		EnableInput(PlayerController);
 	}
@@ -109,7 +147,13 @@ void ACharacterPlayer::BeginPlay()
 	// Weapon Actor Setting
 	for (int32 i = 0; i < Inventory->WeaponSlotCount; ++i)
 	{
-		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[i].WeaponData->WeaponActorClass);
+		if (!Inventory->WeaponSlots[i].WeaponData)
+			continue;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[i].WeaponData->WeaponActorClass, SpawnParams);
 		Inventory->WeaponSlots[i].WeaponActor = WeaponInst;
 		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->GetSocketName());
 		WeaponInst->InitializeWeapon(Inventory->WeaponSlots[i].WeaponData, this);
@@ -117,16 +161,9 @@ void ACharacterPlayer::BeginPlay()
 	}
 	CurWeapon = Inventory->WeaponSlots[0].WeaponActor;
 	CurWeapon->OnEquip();
-
+	SetGunState(EGunState::Ready, false);
 	Stat->SetModifierStat(Inventory->WeaponSlots[0].WeaponData->ModifierStat);
-	UpdateWeaponInputMapping(CurWeapon->GetWeaponType());
-}
-
-void ACharacterPlayer::PostInitializeComponents()
-{
-	Super::PostInitializeComponents();
-
-	//Inventory->OnWeaponChanged.AddDynamic(this, &ACharacterPlayer::HandleWeaponChanged);
+	UpdateWeaponIMC(CurWeapon->GetWeaponType());
 }
 
 void ACharacterPlayer::SetDead()
@@ -170,6 +207,9 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 		// Weapon Switch
 		EnhancedInputComponent->BindAction(WeaponSwitchAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::SwitchWeapon);
+
+		// Reload
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Reload);
 
 		// Zoom
 		EnhancedInputComponent->BindAction(ZoomAction, ETriggerEvent::Ongoing, this, &ACharacterPlayer::CameraAimZoom);
@@ -223,12 +263,14 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 
 void ACharacterPlayer::Attack()
 {
-	CurWeapon->StartAttack();
-
 	if (EWeaponType::Gun == CurWeapon->GetWeaponType())
 	{
 		EnterAimState();
+		IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
+		Anim->Shoot();
 	}
+
+	CurWeapon->StartAttack();
 }
 
 void ACharacterPlayer::PickupItem()
@@ -252,6 +294,7 @@ void ACharacterPlayer::PickupItem()
 		{
 			OverlappingItems.Remove(ClosestItem);
 			ClosestItem->Destroy();
+			Inventory->PlayPickupSound();
 		}
 	}
 }
@@ -260,14 +303,20 @@ void ACharacterPlayer::UseHealItem()
 {
 	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
 
-	Inventory->UseItem(Inventory->GetCurHealItemID());
+	Inventory->UseItem(Inventory->GetCurHealItemID(), 1);
 	//Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
 }
 
-void ACharacterPlayer::SetGunState(EGunState GunState, uint8 InIsZooming)
+void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming)
 {
-	CurGunState = GunState;
+	if (CurGunState != NewGunState)
+	{
+		K2_OnGunStateChanged(NewGunState);
+	}
+
+	CurGunState = NewGunState;
 	bIsZooming = InIsZooming;
+
 	if (EGunState::Aim == CurGunState)
 		bIsAiming = true;
 	else
@@ -322,6 +371,25 @@ void ACharacterPlayer::ExitAimState()
 	SetGunState(EGunState::Ready, false);
 }
 
+void ACharacterPlayer::Reload()
+{
+	if (EWeaponType::Gun != CurWeapon->GetWeaponType()) return;
+
+	AGunWeapon* Gun = Cast<AGunWeapon>(CurWeapon);
+
+	if (Gun->CanReload())
+	{
+		ActiveCombatAction(false);
+		Gun->Reload();
+	}
+}
+
+void ACharacterPlayer::EndReload()
+{
+	ActiveCombatAction(true);
+	SetGunState(EGunState::Aim, bIsZooming);
+}
+
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 {
 	const float ScrollValue = Value.GetValue().Get<float>();
@@ -351,29 +419,11 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	}
 
 	CurWeapon->OnUnequip(); // 이전 무기 장착 해제
-
+	SetGunState(EGunState::Ready, false);
 	CurWeapon = Inventory->WeaponSlots[NewIndex].WeaponActor;
 	Stat->SetModifierStat(Inventory->WeaponSlots[NewIndex].WeaponData->ModifierStat);
 	CurWeapon->OnEquip();
-	UpdateWeaponInputMapping(CurWeapon->GetWeaponType());
-}
-
-// OnWeaponChanged에 바인드됨 (삭제 고려)
-void ACharacterPlayer::HandleWeaponChanged(const UWeaponData* Weapon) // 클래스 정보가 오는 게 나은가? 혹은 인덱스
-{
-	if (!Weapon)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Player - HandleWeaponChanged - Weapon was Null"));
-		return;
-	}
-
-	Stat->SetModifierStat(Weapon->ModifierStat);
-
-	CurWeapon->OnUnequip();
-
-	const int32 Idx = Inventory->CurWeaponSlotIdx;
-	CurWeapon = Inventory->WeaponSlots[Idx].WeaponActor;
-	CurWeapon->OnEquip();
+	UpdateWeaponIMC(CurWeapon->GetWeaponType());
 }
 
 void ACharacterPlayer::Parry()
@@ -384,7 +434,7 @@ void ACharacterPlayer::Parry()
 	}
 }
 
-void ACharacterPlayer::UpdateWeaponInputMapping(EWeaponType NewWeaponType)
+void ACharacterPlayer::UpdateWeaponIMC(EWeaponType NewWeaponType)
 {
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -423,8 +473,34 @@ void ACharacterPlayer::UpdateWeaponInputMapping(EWeaponType NewWeaponType)
 				break;
 
 			default:
-				// 무기 없거나 다른 타입일 경우 IMC 없음
 				break;
+			}
+		}
+	}
+}
+
+void ACharacterPlayer::ActiveCombatAction(bool bActive)
+{
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (ULocalPlayer* LocalPlayer = PC->GetLocalPlayer())
+		{
+			UEnhancedInputLocalPlayerSubsystem* Subsystem =
+				ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LocalPlayer);
+
+			if (!Subsystem) return;
+			if (!CombatIMC)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("CombatIMC Was Null"))
+			}
+
+			if (bActive)
+			{
+				Subsystem->AddMappingContext(CombatIMC, 1);
+			}
+			if (!bActive)
+			{
+				Subsystem->RemoveMappingContext(CombatIMC);
 			}
 		}
 	}
@@ -522,21 +598,22 @@ AActor* ACharacterPlayer::GetTargetActor()
 			}
 
 			AttackTarget = BestPawn;
-
+#if ENABLE_DRAW_DEBUG
 			// 감지 시 본인 주변으로 감지 반경을 나타내는 녹색 구체를 그린다
-			DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Green, false, 0.2f);
+			//DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Green, false, 0.2f);
 			// 감지된 적 주변으로 점을 그린다
-			DrawDebugPoint(World, BestPawn->GetActorLocation(), 10.f, FColor::Green, false, 0.2f);
+			//DrawDebugPoint(World, BestPawn->GetActorLocation(), 10.f, FColor::Green, false, 0.2f);
 			// 감지된 적 - 플레이어 간 선을 긋는다
-			DrawDebugLine(World, GetActorLocation(), BestPawn->GetActorLocation(), FColor::Green, false, 0.27f);
-
+			//DrawDebugLine(World, GetActorLocation(), BestPawn->GetActorLocation(), FColor::Green, false, 0.27f);
+#endif
 		}
 	}
 	else
 	{
 		AttackTarget = nullptr;
-
+#if ENABLE_DRAW_DEBUG
 		DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Red, false, 0.2f);
+#endif
 	}
 	return AttackTarget;
 }

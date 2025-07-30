@@ -16,7 +16,7 @@ ACharacterNPC::ACharacterNPC()
 	{
 		HPBar->SetWidgetClass(HPBarWidgetRef.Class);
 		HPBar->SetWidgetSpace(EWidgetSpace::Screen);
-		HPBar->SetDrawSize(FVector2D(150.f, 15.f));
+		HPBar->SetDrawSize(FVector2D(100.f, 8.f));
 		HPBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }

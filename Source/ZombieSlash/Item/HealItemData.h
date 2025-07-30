@@ -16,6 +16,10 @@ class ZOMBIESLASH_API UHealItemData : public UItemData
 	
 public:
 	UHealItemData();
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
 
 	UPROPERTY(EditAnywhere, Category = Hp)
 	float HealAmount;

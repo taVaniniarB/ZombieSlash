@@ -12,6 +12,18 @@ UZSAnimInstanse::UZSAnimInstanse()
 
 	bIsZooming = false;
 	bIsAiming = false;
+	bIsShooting = false;
+}
+
+void UZSAnimInstanse::Shoot()
+{
+	bIsShooting = true;
+	GetWorld()->GetTimerManager().SetTimer(
+		ShootAnimTimer,
+		this,
+		&UZSAnimInstanse::ResetIsShooting,
+		0.1f,
+		false);
 }
 
 void UZSAnimInstanse::NativeInitializeAnimation()

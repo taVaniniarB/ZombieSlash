@@ -39,3 +39,8 @@ void AWeaponBase::OnUnequip()
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 }
+
+EWeaponType AWeaponBase::GetWeaponType() const
+{
+	return WeaponData->WeaponType;
+}

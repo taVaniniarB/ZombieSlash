@@ -16,23 +16,32 @@ class ZOMBIESLASH_API UGunData : public UWeaponData
 	
 public:
 	UGunData();
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
 
 public:
-	UPROPERTY(EditAnywhere)
+	//UPROPERTY(EditAnywhere, Category = "Ammo")
+	//class UAmmoData* AmmoData;
+	
+	UPROPERTY(EditAnywhere, Category = "Ammo")
 	int32 MaxAmmo;
 
-	UPROPERTY(EditAnywhere)
-	float Delay;
+	UPROPERTY(EditAnywhere, Category = "Delay")
+	float FireDelay;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Particle")
-	TObjectPtr<UParticleSystem> ImpactEffect;
+	TObjectPtr<class UNiagaraSystem> ImpactEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Particle")
-	TObjectPtr<UParticleSystem> MuzzleFlash;
+	TObjectPtr<class UNiagaraSystem> MuzzleFlash;
 
 	UPROPERTY(EditAnywhere, Category = "Sound")
 	TObjectPtr<USoundBase> MuzzleSound;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	TObjectPtr<UAnimMontage> ShootMontage;
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	TObjectPtr<UAnimMontage> ReloadMontage;
 };

@@ -23,6 +23,9 @@ public:
 	void SetCurWeaponType(EWeaponType InWeaponType) { CurWeaponType= InWeaponType; }
 	void SetIsAiming(uint8 InIsAiming) { bIsAiming = InIsAiming; }
 	void SetIsZooming(uint8 InIsZooming) { bIsZooming = InIsZooming; }
+	void Shoot();
+	FTimerHandle ShootAnimTimer;
+	void ResetIsShooting() { bIsShooting = false; }
 
 protected:
 	virtual void NativeInitializeAnimation() override;
@@ -60,10 +63,12 @@ protected:
 	uint8 bIsAiming : 1;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsZooming : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsShooting : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float JumpingThreshould;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Character)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Character)
 	EWeaponType CurWeaponType;
 };

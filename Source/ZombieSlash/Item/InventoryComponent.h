@@ -75,7 +75,7 @@ public:
 	TArray<FWeaponSlot> WeaponSlots; // ¹«±â ½½·Ô
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	int32 WeaponSlotCount = 2;
+	int32 WeaponSlotCount = 3;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
 	int32 CurWeaponSlotIdx = 0; // ÇöÀç ÀåÂøµÈ ½½·Ô ÀÎµ¦½º
@@ -106,18 +106,24 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	int32 GetItemCountByType(enum EItemType ItemType) const;
+	UFUNCTION(BlueprintCallable)
+	int32 GetItemCountByID(FPrimaryAssetId ID) const;
 	
 	UFUNCTION(BlueprintCallable)
 	int32 RemoveItem(FName ItemID);
 
 	UFUNCTION(BlueprintCallable)
-	bool UseItem(FName ItemID);
+	bool UseItem(FName ItemID, int32 UseQuantity);
 
 	UPROPERTY()
 	FName CurHealItemID;
 
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FName GetCurHealItemID() const { return CurHealItemID; }
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class USoundBase> PickupSound;
+	void PlayPickupSound();
 
 	
 protected:
