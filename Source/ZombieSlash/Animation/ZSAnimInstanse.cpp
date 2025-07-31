@@ -48,14 +48,15 @@ void UZSAnimInstanse::NativeUpdateAnimation(float DeltaSeconds)
 		bIsIdle = GroundSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
 		bIsJumping = bIsFalling & (Velocity.Z > JumpingThreshould);
+		bShouldMove = (GroundSpeed > 0) && (FVector::ZeroVector != Movement->GetCurrentAcceleration());
 
-		if (GroundSpeed > 0 && FVector::ZeroVector != Movement->GetCurrentAcceleration())
+		/*if (GroundSpeed > 0 && FVector::ZeroVector != Movement->GetCurrentAcceleration())
 		{
 			Movement->RotationRate = FRotator(0.f, 400.f, 0.f);
 		}
 		else
 		{
 			Movement->RotationRate = FRotator::ZeroRotator;
-		}
+		}*/
 	}
 }

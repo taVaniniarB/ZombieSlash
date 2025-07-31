@@ -22,6 +22,7 @@ public:
 	void SetRunMode(bool bRunMode) { bIsRunMode = bRunMode; }
 	void SetCurWeaponType(EWeaponType InWeaponType) { CurWeaponType= InWeaponType; }
 	void SetIsAiming(uint8 InIsAiming) { bIsAiming = InIsAiming; }
+	void SetIsReloading(uint8 InIsReloading) { bIsReloading = InIsReloading; }
 	void SetIsZooming(uint8 InIsZooming) { bIsZooming = InIsZooming; }
 	void Shoot();
 	FTimerHandle ShootAnimTimer;
@@ -49,6 +50,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsIdle : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bShouldMove : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	float MovingThreshould;
@@ -61,6 +64,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsAiming : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
+	uint8 bIsReloading : 1;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)
 	uint8 bIsZooming : 1;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Character)

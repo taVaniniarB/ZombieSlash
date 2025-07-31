@@ -47,7 +47,7 @@ public:
 	FORCEINLINE float GetMaxHP() { return GetTotalStat().MaxHP; }
 	FORCEINLINE float GetCurHP() { return CurHP; }
 
-	FORCEINLINE void HealHp(float InHealAmount) { /*CurHP = FMath::Clamp(CurHP + InHealAmount, 0, GetTotalStat().MaxHp); OnHPChanged.Broadcast(CurHP);*/ }
+	FORCEINLINE void HealHp(float InHealAmount) { CurHP = FMath::Clamp(CurHP + InHealAmount, 0, GetTotalStat().MaxHP); OnHPChanged.Broadcast(CurHP); }
 
 
 protected:	

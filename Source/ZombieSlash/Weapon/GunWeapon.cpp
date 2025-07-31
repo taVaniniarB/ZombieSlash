@@ -9,6 +9,7 @@
 #include "Physics/ZSCollision.h"
 #include "Interface/CharacterWeaponInterface.h"
 #include "Item/InventoryComponent.h"
+#include "Item/AmmoItemData.h"
 
 AGunWeapon::AGunWeapon()
 {
@@ -34,6 +35,7 @@ void AGunWeapon::BeginPlay()
 
 	const UGunData* Gun = GetGunData();
 	CurAmmo = Gun->MaxAmmo;
+	AmmoData = Gun->AmmoData;
 
 	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport, Invisible
 }
@@ -53,7 +55,7 @@ void AGunWeapon::OnUnequip()
 // 플레이어 입력에 의해 호출
 void AGunWeapon::StartAttack()
 {
-	if (bCanFire)
+	if (bCanFire && CurAmmo > 0)
 	{
 		Fire();
 	}
@@ -63,6 +65,7 @@ void AGunWeapon::Fire()
 {
 	bCanFire = false;
 	CurAmmo--;
+
 	// FireDelay초 후 bCanFire를 true로 만든다
 	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, [this]()
 		{
@@ -144,15 +147,15 @@ void AGunWeapon::Reload()
 
 bool AGunWeapon::CanReload()
 {
-	int32 TotalAmmo = 100;
-	//int32 TotalAmmo = Inventory->GetItemCountByID(AmmoData.GetPrimaryAssetId());
+	int32 TotalAmmo = Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
+	
 	if (TotalAmmo <= 0) return false;
 
 	int32 ToCharge = GetGunData()->MaxAmmo - CurAmmo;
 
 	if (ToCharge <= 0) // 탄창이 꽉 참
 	{
-		UE_LOG(LogTemp, Warning, TEXT("탄창 꽉 참"));
+		UE_LOG(LogTemp, Warning, TEXT("Full Ammo"));
 		return false;
 	}
 
@@ -162,13 +165,21 @@ bool AGunWeapon::CanReload()
 void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterrupted)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnReloadMontageEnded Called"));
-
-	if (bInterrupted) return;
+	// 입력 활성화
+	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
+	if (OwnerCharacter)
+	{
+		OwnerCharacter->EndReload();
+	}
+	
+	if (bInterrupted)
+	{
+		return;
+	}
 
 	// 채울 총알의 개수
 	int32 ToCharge = GetGunData()->MaxAmmo - CurAmmo;
-	int32 TotalAmmo = 100;
-	//int32 TotalAmmo = Inventory->GetItemCountByID(AmmoData.GetPrimaryAssetId());
+	int32 TotalAmmo = Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
 
 	if (TotalAmmo < ToCharge) // 채워야 하는 총알보다 인벤토리 내 총알이 적다면 인벤토리 내 총알의 개수만큼만 장전
 	{
@@ -177,12 +188,5 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 
 	CurAmmo += ToCharge; // 탄창 채우기
 	
-	//Inventory->UseItem(AmmoData->GetID(), ToCharge);
-
-	// 입력 활성화
-	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
-	if (OwnerCharacter)
-	{
-		OwnerCharacter->EndReload();
-	}
+	Inventory->UseItem(AmmoData->GetPrimaryAssetId(), ToCharge);
 }

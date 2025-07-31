@@ -52,6 +52,7 @@ public:
 private:
     // 총기 데이터로 캐스팅해서 사용
     const class UGunData* GetGunData() const { return Cast<UGunData>(WeaponData); }
+    const class UAmmoItemData* AmmoData;
 
     bool bCanFire;
     void SetCanFire() { bCanFire = true; }

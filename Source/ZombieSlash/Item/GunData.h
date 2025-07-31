@@ -22,11 +22,11 @@ public:
 	}
 
 public:
-	//UPROPERTY(EditAnywhere, Category = "Ammo")
-	//class UAmmoData* AmmoData;
+	UPROPERTY(EditAnywhere, Category = "Ammo")
+	TObjectPtr<class UAmmoItemData> AmmoData;
 	
 	UPROPERTY(EditAnywhere, Category = "Ammo")
-	int32 MaxAmmo;
+	int32 MaxAmmo; // 탄창에 들어갈 수 있는 최대 총알
 
 	UPROPERTY(EditAnywhere, Category = "Delay")
 	float FireDelay;
@@ -42,6 +42,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	TObjectPtr<UAnimMontage> ShootMontage;
+
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	TObjectPtr<UAnimMontage> ReloadMontage;
 };

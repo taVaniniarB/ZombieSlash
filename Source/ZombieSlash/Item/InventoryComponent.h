@@ -102,24 +102,24 @@ public:
 	bool AddItem(UItemData* ItemData, int32 Quantity);
 
 	UFUNCTION(BlueprintCallable)
-	int32 GetItemCount(FName ItemID) const;
-
-	UFUNCTION(BlueprintCallable)
 	int32 GetItemCountByType(enum EItemType ItemType) const;
 	UFUNCTION(BlueprintCallable)
 	int32 GetItemCountByID(FPrimaryAssetId ID) const;
 	
 	UFUNCTION(BlueprintCallable)
-	int32 RemoveItem(FName ItemID);
+	int32 RemoveItem(FPrimaryAssetId ItemID);
+	UFUNCTION(BlueprintCallable)
+	class UItemData* GetItem(FPrimaryAssetId ItemID);
 
 	UFUNCTION(BlueprintCallable)
-	bool UseItem(FName ItemID, int32 UseQuantity);
+	bool UseItem(FPrimaryAssetId ItemID, int32 UseQuantity);
 
 	UPROPERTY()
-	FName CurHealItemID;
+	FPrimaryAssetId CurHealItemID;
 
 	UFUNCTION(BlueprintCallable)
-	FORCEINLINE FName GetCurHealItemID() const { return CurHealItemID; }
+	FORCEINLINE FPrimaryAssetId GetCurHealItemID() const { return CurHealItemID; }
+	//FORCEINLINE TObjectPtr<class HealItemData> GetCurHealItem() const { return GetItem(CurHealItemID); }
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> PickupSound;
@@ -131,5 +131,5 @@ protected:
 
 	int32 FindEmptySlotIndex() const;
 
-	int32 FindItemSlotIndexByID(FName InID) const;
+	int32 FindItemSlotIndexByID(FPrimaryAssetId InID) const;
 };

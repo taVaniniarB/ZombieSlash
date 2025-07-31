@@ -13,5 +13,10 @@ UCLASS()
 class ZOMBIESLASH_API UAmmoItemData : public UItemData
 {
 	GENERATED_BODY()
-	
+public:
+	UAmmoItemData();
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
 };

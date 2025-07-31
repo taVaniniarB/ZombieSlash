@@ -14,6 +14,7 @@
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "Item/GunData.h"
+#include "Item/HealItemData.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/GunWeapon.h"
 #include "Weapon/MeleeWeapon.h"
@@ -96,7 +97,7 @@ ACharacterPlayer::ACharacterPlayer()
 	{
 		HealAction = InputActionHealRef.Object;
 	}
-	
+
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> GunMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Gun.IMC_Gun'"));
 	if (nullptr != GunMappingContextRef.Object)
 	{
@@ -110,7 +111,7 @@ ACharacterPlayer::ACharacterPlayer()
 	static ConstructorHelpers::FObjectFinder<UInputAction> ReloadActionRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/GunAction/IA_Reload.IA_Reload'"));
 	if (nullptr != ReloadActionRef.Object)
 	{
-		ReloadAction = ZoomActionRef.Object;
+		ReloadAction = ReloadActionRef.Object;
 	}
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> MeleeMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Melee.IMC_Melee'"));
 	if (nullptr != MeleeMappingContextRef.Object)
@@ -129,13 +130,11 @@ void ACharacterPlayer::Tick(float DeltaTime)
 void ACharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// Input Setting
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			Subsystem->ClearAllMappings();
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			Subsystem->AddMappingContext(InteractionIMC, 0);
 			Subsystem->AddMappingContext(CombatIMC, 0);
@@ -161,7 +160,7 @@ void ACharacterPlayer::BeginPlay()
 	}
 	CurWeapon = Inventory->WeaponSlots[0].WeaponActor;
 	CurWeapon->OnEquip();
-	SetGunState(EGunState::Ready, false);
+	SetGunState(EGunState::Ready, false, false);
 	Stat->SetModifierStat(Inventory->WeaponSlots[0].WeaponData->ModifierStat);
 	UpdateWeaponIMC(CurWeapon->GetWeaponType());
 }
@@ -303,13 +302,16 @@ void ACharacterPlayer::UseHealItem()
 {
 	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
 
-	Inventory->UseItem(Inventory->GetCurHealItemID(), 1);
-	//Stat->HealHp(Inventory->GetCurrentHealItem()->HealAmount);
+	FPrimaryAssetId HealItemID = Inventory->GetCurHealItemID();
+	UHealItemData* HealItem = Cast<UHealItemData>(Inventory->GetItem(HealItemID));
+
+	Inventory->UseItem(HealItemID, 1);
+	Stat->HealHp(HealItem->HealAmount);
 }
 
-void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming)
+void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming, bool PlayMontage)
 {
-	if (CurGunState != NewGunState)
+	if (CurGunState != NewGunState && PlayMontage && !(CurGunState == EGunState::Reload))
 	{
 		K2_OnGunStateChanged(NewGunState);
 	}
@@ -317,10 +319,8 @@ void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming)
 	CurGunState = NewGunState;
 	bIsZooming = InIsZooming;
 
-	if (EGunState::Aim == CurGunState)
-		bIsAiming = true;
-	else
-		bIsAiming = false;
+	bIsAiming = EGunState::Aim == CurGunState ? true : false;
+	bIsReloading = EGunState::Reload == CurGunState ? true : false;
 
 	UpdateAnimAimState();
 }
@@ -329,25 +329,26 @@ void ACharacterPlayer::UpdateAnimAimState()
 {
 	IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
 	Anim->SetIsAiming(bIsAiming);
+	Anim->SetIsReloading(bIsReloading);
 	Anim->SetIsZooming(bIsZooming);
 }
 
 void ACharacterPlayer::EnterAimState()
 {
-	SetGunState(EGunState::Aim, bIsZooming);
+	SetGunState(EGunState::Aim, bIsZooming, true);
 	ResetExitAimTimer();
 }
 
 void ACharacterPlayer::CameraAimZoom()
 {
-	SetGunState(EGunState::Aim, true);
+	SetGunState(EGunState::Aim, true, true);
 
 	ResetExitAimTimer();
 }
 
 void ACharacterPlayer::ExitCameraAimZoom()
 {
-	SetGunState(EGunState::Aim, false);
+	SetGunState(EGunState::Aim, false, true);
 }
 
 void ACharacterPlayer::ResetExitAimTimer()
@@ -368,16 +369,18 @@ void ACharacterPlayer::ResetExitAimTimer()
 // ExitAim 타이머 종료 시 호출
 void ACharacterPlayer::ExitAimState()
 {
-	SetGunState(EGunState::Ready, false);
+	SetGunState(EGunState::Ready, false, true);
 }
 
 void ACharacterPlayer::Reload()
 {
 	if (EWeaponType::Gun != CurWeapon->GetWeaponType()) return;
 
+	SetGunState(EGunState::Reload, bIsZooming, false);
+
 	AGunWeapon* Gun = Cast<AGunWeapon>(CurWeapon);
 
-	if (Gun->CanReload())
+	if (Gun->CanReload() && !GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
 	{
 		ActiveCombatAction(false);
 		Gun->Reload();
@@ -387,7 +390,8 @@ void ACharacterPlayer::Reload()
 void ACharacterPlayer::EndReload()
 {
 	ActiveCombatAction(true);
-	SetGunState(EGunState::Aim, bIsZooming);
+	SetGunState(EGunState::Aim, bIsZooming, false);
+	ResetExitAimTimer();
 }
 
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
@@ -419,7 +423,7 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	}
 
 	CurWeapon->OnUnequip(); // 이전 무기 장착 해제
-	SetGunState(EGunState::Ready, false);
+	SetGunState(EGunState::Ready, false, false);
 	CurWeapon = Inventory->WeaponSlots[NewIndex].WeaponActor;
 	Stat->SetModifierStat(Inventory->WeaponSlots[NewIndex].WeaponData->ModifierStat);
 	CurWeapon->OnEquip();
@@ -491,7 +495,7 @@ void ACharacterPlayer::ActiveCombatAction(bool bActive)
 			if (!Subsystem) return;
 			if (!CombatIMC)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("CombatIMC Was Null"))
+				UE_LOG(LogTemp, Warning, TEXT("CombatIMC is Null"))
 			}
 
 			if (bActive)

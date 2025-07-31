@@ -24,6 +24,11 @@ class ZOMBIESLASH_API UItemData : public UPrimaryDataAsset
 	GENERATED_BODY()
 
 public:
+	virtual FPrimaryAssetId GetPrimaryAssetId() const override
+	{
+		return FPrimaryAssetId("ItemData", GetFName());
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Type)
 	EItemType ItemType;
 

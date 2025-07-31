@@ -3,3 +3,7 @@
 
 #include "Item/AmmoItemData.h"
 
+UAmmoItemData::UAmmoItemData()
+{
+	ItemType = EItemType::Ammo;
+}

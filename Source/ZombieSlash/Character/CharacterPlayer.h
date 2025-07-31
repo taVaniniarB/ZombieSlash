@@ -14,7 +14,8 @@ UENUM(BlueprintType)
 enum class EGunState : uint8
 {
 	Ready = 0,
-	Aim
+	Aim,
+	Reload
 };
 
 UENUM(BlueprintType)
@@ -115,12 +116,14 @@ protected:
 	EGunState CurGunState = EGunState::Ready;
 
 	EGunState GetGunState() { return CurGunState; }
-	void SetGunState(EGunState GunState, uint8 InIsZooming);
+	void SetGunState(EGunState GunState, uint8 InIsZooming, bool PlayMontage);
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
 	uint8 bIsZooming : 1;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
 	uint8 bIsAiming : 1;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
+	uint8 bIsReloading : 1;
 	
 	FTimerHandle ExitAimTimerHandle;
 	float ExitAimTime = 3.0f;

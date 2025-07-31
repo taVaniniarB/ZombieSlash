@@ -25,6 +25,7 @@ class ZOMBIESLASH_API IWeaponAnimInterface
 public:
 	virtual void SetCurWeaponType(EWeaponType InWeaponType) = 0;
 	virtual void SetIsAiming(uint8 InIsAiming) = 0;
+	virtual void SetIsReloading(uint8 InIsReloading) = 0;
 	virtual void SetIsZooming(uint8 InIsZooming) = 0;
 	virtual void Shoot() = 0;
 };
