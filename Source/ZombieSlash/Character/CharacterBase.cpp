@@ -107,6 +107,7 @@ void ACharacterBase::AttackHitCheck()
 void ACharacterBase::SetDead()
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	GetMesh()->	GetAnimInstance()->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
 	PlayDeadAnimation();
 	SetActorEnableCollision(false);
 }
@@ -142,4 +143,11 @@ FCharacterStat ACharacterBase::GetWeaponOwnerStat() const
 float ACharacterBase::GetWeaponOwnerCapsuleRadius() const
 {
 	return GetCapsuleComponent()->GetScaledCapsuleRadius();
+}
+
+bool ACharacterBase::GetShouldMove() const
+{
+	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
+	
+	return (GroundSpeed > 0) && (FVector::ZeroVector != GetCharacterMovement()->GetCurrentAcceleration());
 }

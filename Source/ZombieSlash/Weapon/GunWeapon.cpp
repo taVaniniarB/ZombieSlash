@@ -23,14 +23,14 @@ void AGunWeapon::BeginPlay()
 
 	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 
-	if(!GetOwner())
-		UE_LOG(LogTemp, Warning, TEXT("Owner was null"));
-
-	Inventory = OwnerCharacter->GetInventory();
-	if (!Inventory)
+	if(OwnerCharacter)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Inventory was null"));
-		return;
+		Inventory = OwnerCharacter->GetInventory();
+		if (!Inventory)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Inventory was null"));
+			return;
+		}
 	}
 
 	const UGunData* Gun = GetGunData();
@@ -91,7 +91,9 @@ void AGunWeapon::Fire()
 	if (!OwnerController) return;
 
 	UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
-	AnimInst->Montage_Play(GetGunData()->ShootMontage, 1.0f); // 犁积且 根鸥林, 犁积 加档
+	
+	if (GetGunData()->ShootMontage)
+		AnimInst->Montage_Play(GetGunData()->ShootMontage, 1.0f); // 犁积且 根鸥林, 犁积 加档
 
 	FVector Location;
 	FRotator Rotation;
@@ -106,7 +108,7 @@ void AGunWeapon::Fire()
 
 	if (bSuccess)
 	{
-		float Damage = OwnerCharacter->GetWeaponOwnerStat().Attack;
+		float Damage = OwnerCharacter->GetWeaponOwnerStat().Attack * 0.5;
 
 		FVector ShotDirection = -Rotation.Vector();
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(

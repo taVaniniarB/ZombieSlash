@@ -68,5 +68,6 @@ protected:
 	virtual float GetWeaponOwnerCapsuleRadius() const override;
 	virtual void EndReload() override { return; }
 	virtual void Parry() override { return; }
-	virtual class UInventoryComponent* GetInventory() const override { return Inventory; } // WeaponInterface
+	virtual class UInventoryComponent* GetInventory() const override { return Inventory; }
+	virtual bool GetShouldMove() const override;
 };

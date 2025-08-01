@@ -25,8 +25,13 @@ public:
 	//float AttackRadius;
 	//float AttackRange; // Modifier 스탯에 저장된 값 사용
 
+	// 전신에 적용된다. 정지 상태에서의 콤보 공격 애니메이션 몽타주
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
-	TObjectPtr<class UAnimMontage> ComboActionMontage;
+	TObjectPtr<class UAnimMontage> InPlaceAttackMontage;
+
+	// Upper Body에만 적용된다. 이동 중 공격하면 재생될 몽타주
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<UAnimMontage> MoveAttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack)
 	TObjectPtr<class UComboActionData> ComboActionData;

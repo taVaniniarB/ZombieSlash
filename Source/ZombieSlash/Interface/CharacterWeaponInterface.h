@@ -29,6 +29,7 @@ public:
 	virtual FVector GetWeaponOwnerForwardVector() const = 0;
 	virtual float GetWeaponOwnerCapsuleRadius() const = 0;
 	virtual class UInventoryComponent* GetInventory() const = 0;
+	virtual bool GetShouldMove() const = 0;
 	virtual void EndReload() = 0;
 	virtual void Parry() = 0;
 };

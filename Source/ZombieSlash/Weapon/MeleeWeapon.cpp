@@ -18,7 +18,7 @@ void AMeleeWeapon::OnEquip()
 {
     Super::OnEquip();
     const UMeleeData* Melee = GetMeleeData();
-    ComboActionMontage = Melee->ComboActionMontage;
+    //ComboActionMontage = Melee->ComboActionMontage;
     ComboActionData = Melee->ComboActionData;
 
     ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
@@ -58,15 +58,33 @@ void AMeleeWeapon::ComboActionBegin()
 
     ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 
+
+    // 이 부분 삭제 고려
     if (AController* PC = OwnerCharacter->GetWeaponOwnerController())
     {
-        PC->SetIgnoreMoveInput(true);
+        //PC->SetIgnoreMoveInput(true);
     }
+
     UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
+
+    // 캐릭터 이동 중 && 무기가 이동 몽타주 보유
+    if (OwnerCharacter->GetShouldMove() && GetMeleeData()->MoveAttackMontage)
+    {
+        // 루트 모션을 무시하여 이동 중 공격이 가능케 한다.
+        AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
+        ComboActionMontage = GetMeleeData()->MoveAttackMontage;
+    }
+    else // 캐릭터가 정지 상태이거나 이동 몽타주 미보유
+    {
+        AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+        ComboActionMontage = GetMeleeData()->InPlaceAttackMontage;
+    }
+
+
     AnimInst->Montage_Play(ComboActionMontage, AttackSpeedRate); // 재생할 몽타주, 재생 속도
 
-    AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
     
+
     FOnMontageEnded EndDelegate;
     EndDelegate.BindUObject(this, &AMeleeWeapon::ComboActionEnd);
     AnimInst->Montage_SetEndDelegate(EndDelegate, ComboActionMontage);
