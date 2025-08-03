@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -12,7 +10,9 @@ enum class EItemType : uint8
 {
 	Weapon = 0,
 	HealItem,
-	Ammo
+	Ammo,
+	Usable,
+	Quest
 };
 
 /**

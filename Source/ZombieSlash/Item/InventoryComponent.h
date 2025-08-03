@@ -4,49 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "InventorySlot.h"
 #include "InventoryComponent.generated.h"
 
-USTRUCT(BlueprintType)
-struct FInventorySlot
-{
-	GENERATED_BODY()
 
-	FInventorySlot(UItemData* InItemData, int32 InQuantity)
-		: ItemData(InItemData), Quantity(InQuantity)
-	{}
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSlotChanged, const TArray<class UWeaponData*>, NewWeapons);
 
-	FInventorySlot()
-		: ItemData(nullptr), Quantity(0)
-	{}
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<class UItemData> ItemData;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 Quantity;
-
-public:
-	bool IsValid()
-	{
-		if (ItemData && Quantity > 0) return true;
-		return false;
-	}
-};
-
-USTRUCT(BlueprintType)
-struct FWeaponSlot
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UWeaponData> WeaponData; // 무기 데이터
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<class AWeaponBase> WeaponActor; // 스폰된 무기 액터
-};
-
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSlotChanged, const class UWeaponData*, NewWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUpdatedInventory);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
@@ -56,7 +20,21 @@ class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
 public:	
 	UInventoryComponent();
 	
-	FOnWeaponSlotChanged OnWeaponSlotChanged;
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnWeaponSlotChanged OnWeaponSlotUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnUpdatedInventory OnUpdatedInventory;
+
+
+protected:
+	virtual void BeginPlay() override;
+
+	// 로드된 아이템 데이터를 캐싱하는 맵
+	UPROPERTY()
+	TMap<FPrimaryAssetId, TObjectPtr<UItemData>> ItemDataCache;
+	// 비동기 로딩을 위한 콜백 함수
+	void OnItemDataLoaded(FPrimaryAssetId ItemID);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -96,34 +74,43 @@ public:
 	void InitializeWeaponSlots();
 
 
-	// Inventory Logic
 public:
 	UFUNCTION(BlueprintCallable)
-	bool AddItem(UItemData* ItemData, int32 Quantity);
+	bool AddItem(FPrimaryAssetId ItemID, int32 InQuantity);
+	UFUNCTION(BlueprintCallable)
+	void CreateNewStack(int32 Idx, FPrimaryAssetId ID, int32 Quantity);
+	UFUNCTION(BlueprintCallable)
+	void TransferSlot(int32 Idx, int32 SrcIdx, UInventoryComponent* SrcInventory);
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetItemCountByType(enum EItemType ItemType) const;
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetItemCountByID(FPrimaryAssetId ID) const;
 	
-	UFUNCTION(BlueprintCallable)
-	int32 RemoveItem(FPrimaryAssetId ItemID);
-	UFUNCTION(BlueprintCallable)
-	class UItemData* GetItem(FPrimaryAssetId ItemID);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool RemoveItemByID(FPrimaryAssetId ItemID);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool RemoveItemByIdx(int32 idx);
 
-	UFUNCTION(BlueprintCallable)
-	bool UseItem(FPrimaryAssetId ItemID, int32 UseQuantity);
+	// 인벤토리 내에서 아이템을 가져오는 함수
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	class UItemData* GetItemFromInventory(FPrimaryAssetId ItemID);
+	// 캐시로부터 아이템 데이터를 가져오는 함수
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	UItemData* GetItemData(FPrimaryAssetId ItemID) const;
 
-	UPROPERTY()
-	FPrimaryAssetId CurHealItemID;
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool UseItemByID(FPrimaryAssetId ItemID, int32 UseQuantity);
 
-	UFUNCTION(BlueprintCallable)
-	FORCEINLINE FPrimaryAssetId GetCurHealItemID() const { return CurHealItemID; }
-	//FORCEINLINE TObjectPtr<class HealItemData> GetCurHealItem() const { return GetItem(CurHealItemID); }
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	bool UseItemByIndex(int32 Idx, int32 UseQuantity);
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<class USoundBase> PickupSound;
 	void PlayPickupSound();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateInventory();
 
 	
 protected:
@@ -132,4 +119,6 @@ protected:
 	int32 FindEmptySlotIndex() const;
 
 	int32 FindItemSlotIndexByID(FPrimaryAssetId InID) const;
+
+	void InitializeItemDataCache();
 };

@@ -95,7 +95,7 @@ ACharacterPlayer::ACharacterPlayer()
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHealRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Heal.IA_Heal'"));
 	if (nullptr != InputActionHealRef.Object)
 	{
-		HealAction = InputActionHealRef.Object;
+		QuickSlotX = InputActionHealRef.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> GunMappingContextRef(TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Gun.IMC_Gun'"));
@@ -201,8 +201,8 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		// Pickup
 		EnhancedInputComponent->BindAction(PickupAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::PickupItem);
 
-		// Pickup
-		EnhancedInputComponent->BindAction(HealAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseHealItem);
+		// QuickSlot(X)
+		EnhancedInputComponent->BindAction(QuickSlotX, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseQuickSlotX);
 
 		// Weapon Switch
 		EnhancedInputComponent->BindAction(WeaponSwitchAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::SwitchWeapon);
@@ -281,13 +281,13 @@ void ACharacterPlayer::PickupItem()
 
 	if (ClosestItem)
 	{
-		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData, ClosestItem->Quantity);
+		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
 
-		for (int i = 0; i < Inventory->MaxSlotCount; ++i)
+		/*for (int i = 0; i < Inventory->MaxSlotCount; ++i)
 		{
 			if (IsValid(Inventory->Items[i].ItemData))
 				UE_LOG(LogTemp, Warning, TEXT("%s, %d개, 슬롯: %d"), *Inventory->Items[i].ItemData->Name, Inventory->Items[i].Quantity, i);
-		}
+		}*/
 
 		if (bSuccess)
 		{
@@ -298,15 +298,9 @@ void ACharacterPlayer::PickupItem()
 	}
 }
 
-void ACharacterPlayer::UseHealItem()
+void ACharacterPlayer::UseQuickSlotX()
 {
-	if (Inventory->GetItemCountByType(EItemType::HealItem) <= 0) return;
 
-	FPrimaryAssetId HealItemID = Inventory->GetCurHealItemID();
-	UHealItemData* HealItem = Cast<UHealItemData>(Inventory->GetItem(HealItemID));
-
-	Inventory->UseItem(HealItemID, 1);
-	Stat->HealHp(HealItem->HealAmount);
 }
 
 void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming, bool PlayMontage)

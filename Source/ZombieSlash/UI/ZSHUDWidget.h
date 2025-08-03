@@ -28,9 +28,8 @@ protected:
 	UPROPERTY()
 	TObjectPtr<class UHPBarWidget> HPBar;
 
-	//UPROPERTY()
-	//TObjectPtr<class UItemWidget> Item;
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<class UHealItemData> HealItem;
 
-	//UPROPERTY()
-	//TObjectPtr<class UMinimapWidget> MiniMap;
+	void SetHealItem(UHealItemData* ItemData);
 };

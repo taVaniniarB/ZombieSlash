@@ -190,5 +190,5 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 
 	CurAmmo += ToCharge; // ÅºÃ¢ Ã¤¿ì±â
 	
-	Inventory->UseItem(AmmoData->GetPrimaryAssetId(), ToCharge);
+	Inventory->UseItemByID(AmmoData->GetPrimaryAssetId(), ToCharge);
 }

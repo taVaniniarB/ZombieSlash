@@ -77,7 +77,7 @@ void ACharacterBase::AttackHitCheck()
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
 	const float AttackRange = Stat->GetTotalStat().AttackRange;
-	const float AttackRadius = 50.f;
+	const float AttackRadius = Stat->GetTotalStat().AttackRadius;
 	const float AttackDamage = Stat->GetTotalStat().Attack;
 
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * (GetCapsuleComponent()->GetScaledCapsuleRadius());
@@ -98,9 +98,9 @@ void ACharacterBase::AttackHitCheck()
 	FVector CapsuleOrigin = Start + 0.5 * (End - Start);
 	float CapsuleHalfHeight = (AttackRange * 0.5) + AttackRadius;
 	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
-	/*DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
 		FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor,
-		false, 3.f);*/
+		false, 3.f);
 #endif
 }
 

@@ -91,7 +91,7 @@ protected:
 	TObjectPtr<class UInputAction> PickupAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> HealAction;
+	TObjectPtr<class UInputAction> QuickSlotX;
 
 
 	void Move(const FInputActionValue& Value);
@@ -101,7 +101,7 @@ protected:
 	void Attack();
 
 	void PickupItem();
-	void UseHealItem();
+	void UseQuickSlotX();
 
 	// Gun
 protected:

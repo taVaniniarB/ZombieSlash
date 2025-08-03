@@ -11,7 +11,7 @@ struct FCharacterStat : public FTableRowBase
 
 public:
 	FCharacterStat()
-		: MaxHP(0.f), Attack(0.f), AttackRange(0.f), AttackSpeed(0.f), MovementSpeed(0.f) {
+		: MaxHP(0.f), Attack(0.f), AttackRange(0.f), AttackRadius(0.f), AttackSpeed(0.f), MovementSpeed(0.f) {
 	}
 
 	// 구조체 수정 시 유연한 작업 위해 flaot 통일
@@ -23,6 +23,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float AttackRange;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
+	float AttackRadius;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float AttackSpeed;
