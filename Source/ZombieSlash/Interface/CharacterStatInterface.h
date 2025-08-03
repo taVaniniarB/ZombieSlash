@@ -23,4 +23,8 @@ class ZOMBIESLASH_API ICharacterStatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual FName GetCharacterID() const = 0;
+	virtual struct FCharacterStat GetTotalStat() const = 0;
+	virtual void ApplyItemEffectStat(struct FCharacterStat InItemEffectStat) = 0;
+	virtual void ResetItemEffectStat() = 0;
+	virtual void ApplyHeal(float InHealAmount) = 0;
 };

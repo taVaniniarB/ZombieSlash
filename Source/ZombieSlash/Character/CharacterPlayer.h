@@ -156,8 +156,8 @@ protected:
 	void UpdateWeaponIMC(EWeaponType NewWeaponType);
 	void ActiveCombatAction(bool bActive);
 
-protected:
 	// Inventory Section
+protected:
 	void AddOverlappingItem(class AItemPickup* InItemData);
 	void RemoveOverlappingItem(class AItemPickup* InItemData);
 	void UpdateClosestItem();
@@ -165,6 +165,10 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
 	TObjectPtr<AItemPickup> ClosestItem;
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UQuickSlot> QuickSlot;
 	
 	// Weapon Section
 protected:

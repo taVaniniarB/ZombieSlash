@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "InventorySlot.h"
+#include "Item/InventorySlot.h"
 #include "InventoryComponent.generated.h"
 
 
@@ -41,7 +41,7 @@ public:
 	TArray<FInventorySlot> Items;
 
 	UPROPERTY()
-	int32 MaxSlotCount = 30;
+	int32 MaxSlotCount;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 CurSlotCount = 0;
@@ -80,7 +80,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CreateNewStack(int32 Idx, FPrimaryAssetId ID, int32 Quantity);
 	UFUNCTION(BlueprintCallable)
-	void TransferSlot(int32 Idx, int32 SrcIdx, UInventoryComponent* SrcInventory);
+	virtual void TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* SrcInventory);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	int32 GetItemCountByType(enum EItemType ItemType) const;

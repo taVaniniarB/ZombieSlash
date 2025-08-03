@@ -8,7 +8,7 @@
 #include "Engine/DamageEvents.h"
 #include "Physics/ZSCollision.h"
 #include "Interface/CharacterWeaponInterface.h"
-#include "Item/InventoryComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "Item/AmmoItemData.h"
 
 AGunWeapon::AGunWeapon()

@@ -50,9 +50,13 @@ protected:
 	void SetCharacterID(FName InID) { CharacterID = InID; }
 
 	virtual void SetupCharacterWidget(class UZSUserWidget* InWidget) override;
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCharacterStatComponent> Stat;
+
+	virtual FCharacterStat GetTotalStat() const override;
+	virtual void ApplyItemEffectStat(FCharacterStat InItemEffectStat) override;
+	virtual void ResetItemEffectStat() override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
@@ -70,4 +74,11 @@ protected:
 	virtual void Parry() override { return; }
 	virtual class UInventoryComponent* GetInventory() const override { return Inventory; }
 	virtual bool GetShouldMove() const override;
+
+	// Item Section
+protected:
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void UseItem(class UUsableItemData* ItemData, AActor* Target);
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	virtual void ApplyHeal(float InHealAmount) override;
 };

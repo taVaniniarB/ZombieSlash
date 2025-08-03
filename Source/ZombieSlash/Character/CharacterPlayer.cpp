@@ -10,7 +10,7 @@
 #include "physics/ZSCollision.h"
 #include "Engine/OverlapResult.h"
 #include "Item/ItemPickup.h"
-#include "Item/InventoryComponent.h"
+#include "Inventory/InventoryComponent.h"
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "Item/GunData.h"
@@ -21,10 +21,15 @@
 #include "CharacterStat/CharacterStatComponent.h"
 #include "UI/ZSHUDWidget.h"
 #include "Interface/WeaponAnimInterface.h"
+#include "Inventory/QuickSlot.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
 	SetCharacterID(TEXT("Player_Default"));
+
+	// Inventory
+	QuickSlot = CreateDefaultSubobject<UQuickSlot>(TEXT("QuickSlot"));
+	QuickSlot->MaxSlotCount = 2;
 
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -610,7 +615,7 @@ AActor* ACharacterPlayer::GetTargetActor()
 	{
 		AttackTarget = nullptr;
 #if ENABLE_DRAW_DEBUG
-		DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Red, false, 0.2f);
+		//DrawDebugSphere(World, GetActorLocation(), DetectRadius, 16, FColor::Red, false, 0.2f);
 #endif
 	}
 	return AttackTarget;

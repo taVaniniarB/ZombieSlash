@@ -10,7 +10,10 @@
 #include "UI/HPBarWidget.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "Animation/ZSAnimInstanse.h"
-#include "Item/InventoryComponent.h"
+#include "Inventory/InventoryComponent.h"
+#include "Item/UsableItemData.h"
+#include "ItemEffect/ItemEffect.h"
+#include "GameData/CharacterStat.h"
 
 
 // Sets default values
@@ -64,7 +67,9 @@ void ACharacterBase::SetRunMode()
 {
 	bRunMode = !bRunMode;
 	Cast<UZSAnimInstanse>(GetMesh()->GetAnimInstance())->SetRunMode(bRunMode);
-	GetCharacterMovement()->MaxWalkSpeed = bRunMode ? 400.f : 300.f;
+	float Speed = Stat->GetTotalStat().MovementSpeed;
+	float RunSpeed = Speed + 100.0f;
+	GetCharacterMovement()->MaxWalkSpeed = bRunMode ? RunSpeed : Speed;
 }
 
 void ACharacterBase::AttackHitCheck()
@@ -135,6 +140,21 @@ void ACharacterBase::SetupCharacterWidget(UZSUserWidget* InWidget)
 	}
 }
 
+FCharacterStat ACharacterBase::GetTotalStat() const
+{
+	return Stat->GetTotalStat();
+}
+
+void ACharacterBase::ApplyItemEffectStat(FCharacterStat InItemEffectStat)
+{
+	Stat->SetItemEffectStat(InItemEffectStat); SetRunMode();
+}
+
+void ACharacterBase::ResetItemEffectStat()
+{
+	Stat->ResetItemEffectStat();
+}
+
 FCharacterStat ACharacterBase::GetWeaponOwnerStat() const
 {
 	return Stat->GetTotalStat();
@@ -150,4 +170,30 @@ bool ACharacterBase::GetShouldMove() const
 	float GroundSpeed = GetCharacterMovement()->Velocity.Size2D();
 	
 	return (GroundSpeed > 0) && (FVector::ZeroVector != GetCharacterMovement()->GetCurrentAcceleration());
+}
+
+void ACharacterBase::UseItem(UUsableItemData* ItemData, AActor* Target)
+{
+	if (!ItemData || !Target)
+	{
+		return;
+	}
+
+	// 모든 효과 적용
+	for (TSubclassOf<UItemEffect> EffectClass : ItemData->Effects)
+	{
+		if (EffectClass)
+		{
+			UItemEffect* Effect = NewObject<UItemEffect>(Target, EffectClass);
+			if (Effect)
+			{
+				Effect->ApplyEffect(Target);
+			}
+		}
+	}
+}
+
+void ACharacterBase::ApplyHeal(float InHealAmount)
+{
+	Stat->ApplyHeal(InHealAmount);
 }

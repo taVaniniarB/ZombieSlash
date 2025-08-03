@@ -27,9 +27,4 @@ public:
 protected:
 	UPROPERTY()
 	TObjectPtr<class UHPBarWidget> HPBar;
-
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<class UHealItemData> HealItem;
-
-	void SetHealItem(UHealItemData* ItemData);
 };

@@ -33,16 +33,20 @@ public:
 	void SetBaseStat(FName ID);
 	FORCEINLINE void SetBaseStat(const FCharacterStat& InBaseStat) { BaseStat = InBaseStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
 	FORCEINLINE void SetModifierStat(const FCharacterStat& InModifierStat) { ModifierStat = InModifierStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
+	FORCEINLINE void SetItemEffectStat(const FCharacterStat& InItemEffectStat) { ItemEffectStat = InItemEffectStat; OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
+	FORCEINLINE void ResetItemEffectStat() { ItemEffectStat = FCharacterStat(); OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat()); }
 
 
 	float ApplyDamage(float InDamage);
+	void ApplyHeal(float InHealAmount);
 
 
 	FORCEINLINE const FCharacterStat& GetBaseStat() const { return BaseStat; }
 	FORCEINLINE const FCharacterStat& GetModifierStat() const { return ModifierStat; }
+	FORCEINLINE const FCharacterStat& GetItemEffectStat() const { return ItemEffectStat; }
 	// 이 임시 객체에 대한 레퍼런스를 반환하게 되면, 함수가 종료되는 순간 임시 객체는 소멸되고,
 	// 반환된 레퍼런스는 유효하지 않은 메모리(dangling reference)를 가리키게 되어 예측 불가능한 버그나 크래시를 유발할 수 있습니다.
-	FORCEINLINE FCharacterStat GetTotalStat() const { return BaseStat + ModifierStat; }
+	FORCEINLINE FCharacterStat GetTotalStat() const { return BaseStat + ModifierStat + ItemEffectStat; }
 
 	FORCEINLINE float GetMaxHP() { return GetTotalStat().MaxHP; }
 	FORCEINLINE float GetCurHP() { return CurHP; }
@@ -68,4 +72,7 @@ protected:
 
 	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"));
 	FCharacterStat ModifierStat;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = "true"));
+	FCharacterStat ItemEffectStat;
 };

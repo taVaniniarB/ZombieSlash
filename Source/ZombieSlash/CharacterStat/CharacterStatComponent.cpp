@@ -46,6 +46,10 @@ float UCharacterStatComponent::ApplyDamage(float InDamage)
 	return ActualDamage;
 }
 
+void UCharacterStatComponent::ApplyHeal(float InHealAmount)
+{
+	SetHP(CurHP + InHealAmount);
+}
 
 void UCharacterStatComponent::SetHP(float NewHP)
 {
