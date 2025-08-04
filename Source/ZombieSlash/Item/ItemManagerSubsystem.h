@@ -34,6 +34,10 @@ public:
 	// 캐시에서 아이템 데이터 가져오기
 	UItemData* GetCachedItemData(FPrimaryAssetId ItemID);
 
+	// 메타데이터 테이블에서 메타데이터 가져오기
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	bool GetMetadata(const FPrimaryAssetId& ItemID, FItemMetadata& OutMetadata) const;
+
 private:
 	// 아이템 데이터 캐시
 	TMap<FPrimaryAssetId, UItemData*> ItemDataCache;

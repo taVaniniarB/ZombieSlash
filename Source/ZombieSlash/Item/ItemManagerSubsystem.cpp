@@ -4,6 +4,8 @@
 #include "Item/ItemManagerSubsystem.h"
 #include "Engine/AssetManager.h"
 #include "ItemData.h"
+#include "GameData/ItemMetaData.h"
+#include "GameData/ZSGameSingleton.h"
 
 void UItemManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -77,6 +79,11 @@ UItemData* UItemManagerSubsystem::GetCachedItemData(FPrimaryAssetId ItemID)
 {
 	UItemData** CachedItem = ItemDataCache.Find(ItemID);
 	return CachedItem ? *CachedItem : nullptr;
+}
+
+bool UItemManagerSubsystem::GetMetadata(const FPrimaryAssetId& ItemID, FItemMetadata& OutMetadata) const
+{
+	return UZSGameSingleton::Get().GetItemMetadata(ItemID, OutMetadata);
 }
 
 void UItemManagerSubsystem::AddToCache(FPrimaryAssetId ItemID, UItemData* ItemData)
