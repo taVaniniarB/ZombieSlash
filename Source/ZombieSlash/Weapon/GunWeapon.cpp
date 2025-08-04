@@ -166,7 +166,6 @@ bool AGunWeapon::CanReload()
 
 void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterrupted)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnReloadMontageEnded Called"));
 	// 입력 활성화
 	ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 	if (OwnerCharacter)
@@ -176,6 +175,7 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 	
 	if (bInterrupted)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("OnReloadMontageEnded Interrupted"));
 		return;
 	}
 

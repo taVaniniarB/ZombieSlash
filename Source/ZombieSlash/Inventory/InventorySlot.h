@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ItemData.h"
+#include "Item/ItemData.h"
 #include "InventorySlot.generated.h" 
 
 
@@ -10,15 +10,14 @@ struct FInventorySlot
 {
 	GENERATED_BODY()
 
-	FInventorySlot(FPrimaryAssetId InItemID, int32 InQuantity)
+	FInventorySlot(FPrimaryAssetId InItemID, int32 InQuantity, EItemType InItemType)
 		: ItemID(InItemID), Quantity(InQuantity)
 	{
 	}
 
 	FInventorySlot()
 		: ItemID(), Quantity(0)
-	{
-	}
+	{}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FPrimaryAssetId ItemID;

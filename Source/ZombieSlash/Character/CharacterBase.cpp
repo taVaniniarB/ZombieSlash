@@ -13,7 +13,9 @@
 #include "Inventory/InventoryComponent.h"
 #include "Item/UsableItemData.h"
 #include "ItemEffect/ItemEffect.h"
+#include "ItemEffect/HealEffect.h"
 #include "GameData/CharacterStat.h"
+#include "ItemEffect/EffectManager.h"
 
 
 // Sets default values
@@ -43,6 +45,9 @@ ACharacterBase::ACharacterBase()
 	// Stat Component
 	Stat = CreateDefaultSubobject<UCharacterStatComponent>(TEXT("Stat"));
 
+	// Effect Manager Component
+	EffectManager = CreateDefaultSubobject<UEffectManager>(TEXT("EffectManager"));
+
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 }
@@ -66,10 +71,10 @@ float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 void ACharacterBase::SetRunMode()
 {
 	bRunMode = !bRunMode;
-	Cast<UZSAnimInstanse>(GetMesh()->GetAnimInstance())->SetRunMode(bRunMode);
-	float Speed = Stat->GetTotalStat().MovementSpeed;
-	float RunSpeed = Speed + 100.0f;
-	GetCharacterMovement()->MaxWalkSpeed = bRunMode ? RunSpeed : Speed;
+	
+	Cast<UZSAnimInstanse>(GetMesh()->GetAnimInstance())->SetRunMode(bRunMode); // AnimInst 업데이트
+	
+	UpdateMovementSpeed(); // 최종 속도 계산
 }
 
 void ACharacterBase::AttackHitCheck()
@@ -147,7 +152,7 @@ FCharacterStat ACharacterBase::GetTotalStat() const
 
 void ACharacterBase::ApplyItemEffectStat(FCharacterStat InItemEffectStat)
 {
-	Stat->SetItemEffectStat(InItemEffectStat); SetRunMode();
+	Stat->SetItemEffectStat(InItemEffectStat);
 }
 
 void ACharacterBase::ResetItemEffectStat()
@@ -179,16 +184,20 @@ void ACharacterBase::UseItem(UUsableItemData* ItemData, AActor* Target)
 		return;
 	}
 
-	// 모든 효과 적용
+	// 아이템이 가진 모든 효과 적용
 	for (TSubclassOf<UItemEffect> EffectClass : ItemData->Effects)
 	{
 		if (EffectClass)
 		{
 			UItemEffect* Effect = NewObject<UItemEffect>(Target, EffectClass);
-			if (Effect)
+
+			if (UHealEffect* Heal = Cast<UHealEffect>(Effect)) // Heal의 경우 지속형이 아닌 즉시 적용이기 때문에 이펙트 매니저를 거치지 않고 바로 Apply한다.
 			{
-				Effect->ApplyEffect(Target);
+				Effect->Apply(Target);
+				return;
 			}
+			
+			EffectManager->AddEffect(Effect);
 		}
 	}
 }
@@ -196,4 +205,20 @@ void ACharacterBase::UseItem(UUsableItemData* ItemData, AActor* Target)
 void ACharacterBase::ApplyHeal(float InHealAmount)
 {
 	Stat->ApplyHeal(InHealAmount);
+}
+
+void ACharacterBase::ApplySpeedBuff(float InMultiflier)
+{
+	Stat->ApplySpeedBuff(InMultiflier);
+	UpdateMovementSpeed();
+}
+
+void ACharacterBase::UpdateMovementSpeed()
+{
+	float BaseSpeed = Stat->GetTotalStat().MovementSpeed;
+	float RunSpeed = BaseSpeed + 100.0f;
+
+	float FinalSpeed = (bRunMode ? RunSpeed : BaseSpeed) * Stat->MovementSpeedMultiplier;
+
+	GetCharacterMovement()->MaxWalkSpeed = FinalSpeed;
 }

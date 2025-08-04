@@ -8,12 +8,13 @@
 #include "Interface/CharacterWidgetInterface.h"
 #include "Interface/CharacterStatInterface.h"
 #include "Interface/CharacterWeaponInterface.h"
+#include "Interface/ItemUserInterface.h"
 #include "CharacterBase.generated.h"
 
 
 UCLASS()
 class ZOMBIESLASH_API ACharacterBase : public ACharacter, 
-	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface, public ICharacterWeaponInterface
+	public IAnimationAttackInterface, public ICharacterWidgetInterface, public ICharacterStatInterface, public ICharacterWeaponInterface, public IItemUserInterface
 {
 	GENERATED_BODY()
 
@@ -58,6 +59,7 @@ protected:
 	virtual void ApplyItemEffectStat(FCharacterStat InItemEffectStat) override;
 	virtual void ResetItemEffectStat() override;
 
+	// Invnetory Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInventoryComponent> Inventory;
@@ -78,7 +80,14 @@ protected:
 	// Item Section
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Item")
-	void UseItem(class UUsableItemData* ItemData, AActor* Target);
+	virtual void UseItem(class UUsableItemData* ItemData, AActor* Target) override;
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	virtual void ApplyHeal(float InHealAmount) override;
+	UFUNCTION(BlueprintCallable, Category = "Buff")
+	virtual void ApplySpeedBuff(float InMultiflier) override;
+
+	// Effect Section
+protected:
+	TObjectPtr<class UEffectManager> EffectManager;
+	void UpdateMovementSpeed();
 };

@@ -5,27 +5,22 @@
 #include "SpeedBoostEffect.h"
 #include "Interface/CharacterStatInterface.h"
 
-void USpeedBoostEffect::ApplyEffect(AActor* Target)
+void USpeedBoostEffect::Apply(AActor* InTarget)
 {
-    if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(Target))
-    {
-        ItemEffectStat.MovementSpeed = (Character->GetTotalStat().MovementSpeed) * SpeedMultiplier;
+    Super::Apply(InTarget);
 
-        Character->ApplyItemEffectStat(ItemEffectStat);
-        
-        Target->GetWorld()->GetTimerManager().SetTimer(
-            TimerHandle,
-            [this, Target]() { RemoveEffect(Target); },
-            Duration,
-            false
-        );
+    if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(InTarget))
+    {
+        Character->ApplySpeedBuff(SpeedMultiplier);
     }
 }
 
-void USpeedBoostEffect::RemoveEffect(AActor* Target)
+void USpeedBoostEffect::Remove()
 {
+    Super::Remove();
+    UE_LOG(LogTemp, Warning, TEXT("Speed Boost Effect Remove Called"));
     if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(Target))
     {
-        Character->ResetItemEffectStat();
+        Character->ApplySpeedBuff(1.0f);
     }
 }

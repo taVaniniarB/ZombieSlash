@@ -2,6 +2,7 @@
 
 
 #include "Inventory/QuickSlot.h"
+#include "Item/ItemManagerSubsystem.h"
 
 UQuickSlot::UQuickSlot()
 {
@@ -12,13 +13,18 @@ UQuickSlot::UQuickSlot()
 void UQuickSlot::TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* SrcInventory)
 {
 	FInventorySlot SrcSlot = SrcInventory->Items[SrcIdx];
-	const UItemData* ItemData = GetItemData(SrcSlot.ItemID);
 
-	if (!ItemData || !(ItemData->ItemType == EItemType::Usable))
-	{
-		// 허용된 타입이 아니면 아무 동작도 하지 않음
-		return;
-	}
+	//if (SrcSlot.ItemType != EItemType::Usable) return;
+
+	/*UItemManagerSubsystem* ItemManager = GetWorld()->GetGameInstance()->GetSubsystem<UItemManagerSubsystem>();
+	ItemManager->LoadItemDataAsync(SrcSlot.ItemID, [](UItemData* ItemData)
+		{
+			if (!ItemData || ItemData->ItemType != EItemType::Usable)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Not Usable Item"));
+				return;
+			}
+		});*/
 
 	Super::TransferSlot(DestIdx, SrcIdx, SrcInventory);
 }

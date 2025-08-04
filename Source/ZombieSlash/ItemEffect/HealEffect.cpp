@@ -4,9 +4,9 @@
 #include "ItemEffect/HealEffect.h"
 #include "Interface/CharacterStatInterface.h"
 
-void UHealEffect::ApplyEffect(AActor* Target)
+void UHealEffect::Apply(AActor* InTarget)
 {
-	if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(Target))
+	if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(InTarget))
 	{
 		Character->ApplyHeal(HealAmount);
 	}

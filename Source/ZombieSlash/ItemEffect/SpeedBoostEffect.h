@@ -19,11 +19,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
 	float SpeedMultiplier = 1.5f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
-	float Duration = 10.0f;
-
-	virtual void ApplyEffect(AActor* Target) override;
-	virtual void RemoveEffect(AActor* Target) override;
+	virtual void Apply(AActor* Target) override;
+	virtual void Remove() override;
 
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FCharacterStat ItemEffectStat;

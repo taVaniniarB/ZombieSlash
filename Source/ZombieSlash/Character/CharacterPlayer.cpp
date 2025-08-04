@@ -14,7 +14,6 @@
 #include "Item/ItemData.h"
 #include "Item/WeaponData.h"
 #include "Item/GunData.h"
-#include "Item/HealItemData.h"
 #include "Weapon/WeaponBase.h"
 #include "Weapon/GunWeapon.h"
 #include "Weapon/MeleeWeapon.h"
@@ -279,33 +278,30 @@ void ACharacterPlayer::Attack()
 
 void ACharacterPlayer::PickupItem()
 {
-	if (OverlappingItems.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("OverlappingItems was 0"));
-	}
-
 	if (ClosestItem)
 	{
-		bool bSuccess = Inventory->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
-
-		/*for (int i = 0; i < Inventory->MaxSlotCount; ++i)
+		bool bSuccess = false;
+		if (ClosestItem->ItemData->ItemType == EItemType::Usable)
 		{
-			if (IsValid(Inventory->Items[i].ItemData))
-				UE_LOG(LogTemp, Warning, TEXT("%s, %d개, 슬롯: %d"), *Inventory->Items[i].ItemData->Name, Inventory->Items[i].Quantity, i);
-		}*/
+			bSuccess = QuickSlot->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
+		}
+		
+		if (!bSuccess)
+		{
+			bSuccess = Inventory->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
+		}
 
 		if (bSuccess)
 		{
 			OverlappingItems.Remove(ClosestItem);
 			ClosestItem->Destroy();
-			Inventory->PlayPickupSound();
 		}
 	}
 }
 
 void ACharacterPlayer::UseQuickSlotX()
 {
-
+	QuickSlot->UseItemByIndex(0, 1);
 }
 
 void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming, bool PlayMontage)

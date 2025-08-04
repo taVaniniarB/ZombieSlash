@@ -27,4 +27,5 @@ public:
 	virtual void ApplyItemEffectStat(struct FCharacterStat InItemEffectStat) = 0;
 	virtual void ResetItemEffectStat() = 0;
 	virtual void ApplyHeal(float InHealAmount) = 0;
+	virtual void ApplySpeedBuff(float InMultiflier) = 0;
 };

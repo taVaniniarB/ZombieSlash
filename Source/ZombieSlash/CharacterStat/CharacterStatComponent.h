@@ -53,6 +53,9 @@ public:
 
 	FORCEINLINE void HealHp(float InHealAmount) { CurHP = FMath::Clamp(CurHP + InHealAmount, 0, GetTotalStat().MaxHP); OnHPChanged.Broadcast(CurHP); }
 
+	// Buff
+	float MovementSpeedMultiplier = 1.0f;
+	void ApplySpeedBuff(float InMultiflier) { MovementSpeedMultiplier = InMultiflier; }
 
 protected:	
 	void SetHP(float NewHP);

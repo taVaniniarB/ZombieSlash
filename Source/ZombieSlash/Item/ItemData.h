@@ -12,7 +12,7 @@ enum class EItemType : uint8
 	HealItem,
 	Ammo,
 	Usable,
-	Quest
+	Quest,
 };
 
 /**
@@ -32,9 +32,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Type)
 	EItemType ItemType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName ItemID;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Name;
 	

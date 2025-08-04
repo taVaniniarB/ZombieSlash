@@ -18,5 +18,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect")
 	float HealAmount = 20.0f;
 
-	virtual void ApplyEffect(AActor* Target) override;
+	virtual void Apply(AActor* Target) override;
 };
