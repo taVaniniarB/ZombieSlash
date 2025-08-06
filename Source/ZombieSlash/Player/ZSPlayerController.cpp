@@ -27,33 +27,12 @@ AZSPlayerController::AZSPlayerController()
 	}
 }
 
-
 void AZSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 	FInputModeGameOnly GameOnlyInputMode;
 	SetInputMode(GameOnlyInputMode);
-
-	/*ZSHUDWidget = CreateWidget<UZSHUDWidget>(this, ZSHUDWidgetClass);
-	if (ZSHUDWidget)
-	{
-		ZSHUDWidget->AddToViewport();
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("ZSHUDWidget was Null"));
-	}
-
-	if (InteractWidgetClass)
-	{
-		InteractWidget = CreateWidget<UUserWidget>(this, InteractWidgetClass);
-		if (InteractWidget)
-		{
-			InteractWidget->AddToViewport();
-			InteractWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}*/
 }
 
 void AZSPlayerController::OnPossess(APawn* InPawn)

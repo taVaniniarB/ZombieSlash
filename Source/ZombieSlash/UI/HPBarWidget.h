@@ -26,13 +26,15 @@ protected:
 public:
 	void UpdateStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat);
 	void UpdateHpBar(float NewCurHP);
+	UFUNCTION(BlueprintImplementableEvent, Category = "HPBar", Meta = (DisplayName = "UpdateHPBar"))
+	void K2_UpdateHPBarcpp(float HPRatio);
 
 protected:
-	UPROPERTY()
-	TObjectPtr<class UProgressBar> HPProgressBar;
+	//UPROPERTY()
+	//TObjectPtr<class UProgressBar> HPProgressBar;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float CurHP;
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	float MaxHP;
 };

@@ -18,7 +18,7 @@ public:
 
 	// 표시용 데이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	EItemType ItemType;
+	EItemType ItemType = EItemType::None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	FString DisplayName;
@@ -27,7 +27,7 @@ public:
 	TSoftObjectPtr<UTexture2D> Icon;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
-	int32 MaxStack;
+	int32 MaxStack = 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Description;

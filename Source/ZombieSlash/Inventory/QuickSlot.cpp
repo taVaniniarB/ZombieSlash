@@ -3,6 +3,7 @@
 
 #include "Inventory/QuickSlot.h"
 #include "Item/ItemManagerSubsystem.h"
+#include "Gamedata/ItemMetaData.h"
 
 UQuickSlot::UQuickSlot()
 {
@@ -14,17 +15,11 @@ void UQuickSlot::TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* 
 {
 	FInventorySlot SrcSlot = SrcInventory->Items[SrcIdx];
 
-	//if (SrcSlot.ItemType != EItemType::Usable) return;
+	UItemManagerSubsystem* ItemManager = GetWorld()->GetGameInstance()->GetSubsystem<UItemManagerSubsystem>();
 
-	/*UItemManagerSubsystem* ItemManager = GetWorld()->GetGameInstance()->GetSubsystem<UItemManagerSubsystem>();
-	ItemManager->LoadItemDataAsync(SrcSlot.ItemID, [](UItemData* ItemData)
-		{
-			if (!ItemData || ItemData->ItemType != EItemType::Usable)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Not Usable Item"));
-				return;
-			}
-		});*/
+	FItemMetadata Metadata;
+	if (!ItemManager->GetMetadata(SrcSlot.ItemID, Metadata)) return;
+	if (Metadata.ItemType != EItemType::Usable) return;
 
 	Super::TransferSlot(DestIdx, SrcIdx, SrcInventory);
 }

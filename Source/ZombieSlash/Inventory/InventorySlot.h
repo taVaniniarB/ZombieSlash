@@ -22,7 +22,7 @@ struct FInventorySlot
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FPrimaryAssetId ItemID;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	int32 Quantity;
 
 public:
@@ -32,14 +32,14 @@ public:
 	}
 };
 
-USTRUCT(BlueprintType)
-struct FWeaponSlot
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<class UWeaponData> WeaponData; // 무기 데이터
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<class AWeaponBase> WeaponActor; // 스폰된 무기 액터
-};
+//USTRUCT(BlueprintType)
+//struct FWeaponSlot
+//{
+//	GENERATED_BODY()
+//
+//	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+//	TObjectPtr<class UWeaponData> WeaponData; // 무기 데이터
+//
+//	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+//	TObjectPtr<class AWeaponBase> WeaponActor; // 스폰된 무기 액터
+//};

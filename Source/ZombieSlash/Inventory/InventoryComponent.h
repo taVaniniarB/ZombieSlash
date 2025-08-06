@@ -8,8 +8,6 @@
 #include "InventoryComponent.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponSlotChanged, const TArray<class UWeaponData*>, NewWeapons);
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUpdatedInventory);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -19,15 +17,12 @@ class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
 
 public:	
 	UInventoryComponent();
-	
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnWeaponSlotChanged OnWeaponSlotUpdated;
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnUpdatedInventory OnUpdatedInventory;
 
 public:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FInventorySlot> Items;
 
 	UPROPERTY()
@@ -36,32 +31,35 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 CurSlotCount = 0;
 
+	UFUNCTION(BlueprintCallable)
+	virtual void SetInventorySize(int32 InMaxSlotCount);
+
 	// Weapon Slot Section
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	//TArray<TObjectPtr<class WeaponData>> WeaponSlots; // 무기 슬롯
-	TArray<FWeaponSlot> WeaponSlots; // 무기 슬롯
+	//TArray<FWeaponSlot> WeaponSlots; // 무기 슬롯
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	int32 WeaponSlotCount = 3;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	//int32 WeaponSlotCount = 3;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	int32 CurWeaponSlotIdx = 0; // 현재 장착된 슬롯 인덱스
-	
-	UPROPERTY(EditAnywhere, Category = Weapon)
-	uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 무기가 바뀌는 로직 호출
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	//int32 CurWeaponSlotIdx = 0; // 현재 장착된 슬롯 인덱스
+	//
+	//UPROPERTY(EditAnywhere, Category = Weapon)
+	//uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 무기가 바뀌는 로직 호출
 
-	UFUNCTION(BlueprintCallable)
-	bool SwitchWeapon(int32 SlotIdx);
+	//UFUNCTION(BlueprintCallable)
+	//bool SwitchWeapon(int32 SlotIdx);
 
-	UFUNCTION(BlueprintCallable)
-	bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
+	//UFUNCTION(BlueprintCallable)
+	//bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
 
-	UFUNCTION(BlueprintCallable)
-	const UWeaponData* GetCurWeaponData() const;
+	//UFUNCTION(BlueprintCallable)
+	//const UWeaponData* GetCurWeaponData() const;
 
-	UFUNCTION(BlueprintCallable)
-	void InitializeWeaponSlots();
+	//UFUNCTION(BlueprintCallable)
+	//void InitializeWeaponSlots();
 
 
 public:

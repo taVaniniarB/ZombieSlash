@@ -50,6 +50,7 @@ ACharacterBase::ACharacterBase()
 
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
+	Inventory->SetInventorySize(20);
 }
 
 void ACharacterBase::PostInitializeComponents()

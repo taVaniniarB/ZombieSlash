@@ -21,14 +21,20 @@
 #include "UI/ZSHUDWidget.h"
 #include "Interface/WeaponAnimInterface.h"
 #include "Inventory/QuickSlot.h"
+#include "Inventory/WeaponSlot.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
 	SetCharacterID(TEXT("Player_Default"));
+	
+	Weapons.SetNum(WeaponSlotCount);
 
 	// Inventory
 	QuickSlot = CreateDefaultSubobject<UQuickSlot>(TEXT("QuickSlot"));
-	QuickSlot->MaxSlotCount = 2;
+	QuickSlot->SetInventorySize(2);
+	WeaponSlot = CreateDefaultSubobject<UWeaponSlot>(TEXT("Weaponslot"));
+	WeaponSlot->SetInventorySize(WeaponSlotCount);
+	WeaponSlot->OnUpdatedWeaponSlot.BindUObject(this, &ACharacterPlayer::InitializeWeaponsFromSlot);
 
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -146,27 +152,40 @@ void ACharacterPlayer::BeginPlay()
 		EnableInput(PlayerController);
 	}
 
-	//Inventory->InitializeWeaponSlots();
-	// Weapon Actor Setting
-	for (int32 i = 0; i < Inventory->WeaponSlotCount; ++i)
+	// Weapon Setting
+	WeaponSlot->LoadWeaponDataFromItems(); // 아이템 로드 및 WeaponData 배열 세팅
+	//InitializeWeaponsFromSlot(); // WeaponSlot의 WeaponData 배열 참조하여 액터 스폰 및 무기 장착
+}
+
+void ACharacterPlayer::InitializeWeaponsFromSlot()
+{
+	UE_LOG(LogTemp, Warning, TEXT("InitializeWeaponsFromSlot Called"));
+
+	// WeaponSlot 내 WeaponData를 참조하여 무기 액터를 생성하고, 이를 Weapons 배열에 보관한다.
+	for (int32 i = 0; i < WeaponSlotCount; ++i)
 	{
-		if (!Inventory->WeaponSlots[i].WeaponData)
+		UWeaponData* WeaponData = WeaponSlot->WeaponData[i];
+
+		if (!WeaponData)
 			continue;
 
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(Inventory->WeaponSlots[i].WeaponData->WeaponActorClass, SpawnParams);
-		Inventory->WeaponSlots[i].WeaponActor = WeaponInst;
+		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponActorClass, SpawnParams);
+		Weapons[i] = WeaponInst;
 		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->GetSocketName());
-		WeaponInst->InitializeWeapon(Inventory->WeaponSlots[i].WeaponData, this);
+		WeaponInst->InitializeWeapon(WeaponData, this);
 		WeaponInst->OnUnequip();
 	}
-	CurWeapon = Inventory->WeaponSlots[0].WeaponActor;
+	CurWeaponIndex = 0;
+	AWeaponBase* CurWeapon = Weapons[CurWeaponIndex];
 	CurWeapon->OnEquip();
 	SetGunState(EGunState::Ready, false, false);
-	Stat->SetModifierStat(Inventory->WeaponSlots[0].WeaponData->ModifierStat);
+	Stat->SetModifierStat(WeaponSlot->WeaponData[0]->ModifierStat);
 	UpdateWeaponIMC(CurWeapon->GetWeaponType());
+
+	WeaponSlot->bEquippedWeaponChanged = false;
 }
 
 void ACharacterPlayer::SetDead()
@@ -266,36 +285,45 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 
 void ACharacterPlayer::Attack()
 {
-	if (EWeaponType::Gun == CurWeapon->GetWeaponType())
+	if (EWeaponType::Gun == Weapons[CurWeaponIndex]->GetWeaponType())
 	{
 		EnterAimState();
 		IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
 		Anim->Shoot();
 	}
 
-	CurWeapon->StartAttack();
+	Weapons[CurWeaponIndex]->StartAttack();
 }
 
 void ACharacterPlayer::PickupItem()
 {
-	if (ClosestItem)
+	if (!ClosestItem || !ClosestItem->ItemData)
 	{
-		bool bSuccess = false;
-		if (ClosestItem->ItemData->ItemType == EItemType::Usable)
-		{
-			bSuccess = QuickSlot->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
-		}
-		
-		if (!bSuccess)
-		{
-			bSuccess = Inventory->AddItem(ClosestItem->ItemData->GetPrimaryAssetId(), ClosestItem->Quantity);
-		}
+		return;
+	}
 
-		if (bSuccess)
-		{
-			OverlappingItems.Remove(ClosestItem);
-			ClosestItem->Destroy();
-		}
+	FPrimaryAssetId ID = ClosestItem->ItemData->GetPrimaryAssetId();
+
+	bool QuickSlotSuccess = false;
+	if (ClosestItem->ItemData->ItemType == EItemType::Usable)
+	{
+		QuickSlotSuccess = QuickSlot->AddItem(ID, ClosestItem->Quantity);
+	}
+
+	bool MainInventorySuccess = false;
+	if (!QuickSlotSuccess)
+	{
+		MainInventorySuccess = Inventory->AddItem(ID, ClosestItem->Quantity);
+	}
+
+	if (QuickSlotSuccess || MainInventorySuccess)
+	{
+		ClosestItem->Destroy();
+		OverlappingItems.Remove(ClosestItem);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Pickup Item Fail"));
 	}
 }
 
@@ -369,11 +397,11 @@ void ACharacterPlayer::ExitAimState()
 
 void ACharacterPlayer::Reload()
 {
-	if (EWeaponType::Gun != CurWeapon->GetWeaponType()) return;
+	if (EWeaponType::Gun != Weapons[CurWeaponIndex]->GetWeaponType()) return;
 
 	SetGunState(EGunState::Reload, bIsZooming, false);
 
-	AGunWeapon* Gun = Cast<AGunWeapon>(CurWeapon);
+	AGunWeapon* Gun = Cast<AGunWeapon>(Weapons[CurWeaponIndex]);
 
 	if (Gun->CanReload() && !GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
 	{
@@ -400,34 +428,37 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	if (IsPlayingRootMotion()) return;
 	if (!Inventory) return;
 
-	int32 TotalSlots = Inventory->WeaponSlotCount;
+	int32 TotalSlots = WeaponSlot->MaxSlotCount;
 	if (TotalSlots == 0) return;
 
-	int32 CurIndex = Inventory->CurWeaponSlotIdx;
-	int32 NewIndex = CurIndex;
+	int32 NewIndex = CurWeaponIndex;
 
-	// 다음 유효한 무기를 찾음 (비어있는 슬롯은 건너뜀)
+	// 다음 유효한 무기를 찾고 현재 무기를 가리킬 인덱스를 세팅한다
 	for (int32 i = 0; i < TotalSlots; ++i)
 	{
 		NewIndex = (NewIndex + Direction + TotalSlots) % TotalSlots;
 
-		if (Inventory->SwitchWeapon(NewIndex))
+		if (Weapons[NewIndex])
 		{
 			break;
 		}
 	}
 
+	AWeaponBase* CurWeapon = Weapons[CurWeaponIndex];
 	CurWeapon->OnUnequip(); // 이전 무기 장착 해제
+
+	CurWeaponIndex = NewIndex;
+
 	SetGunState(EGunState::Ready, false, false);
-	CurWeapon = Inventory->WeaponSlots[NewIndex].WeaponActor;
-	Stat->SetModifierStat(Inventory->WeaponSlots[NewIndex].WeaponData->ModifierStat);
+	CurWeapon = Weapons[NewIndex];
 	CurWeapon->OnEquip();
+	Stat->SetModifierStat(WeaponSlot->WeaponData[0]->ModifierStat);
 	UpdateWeaponIMC(CurWeapon->GetWeaponType());
 }
 
 void ACharacterPlayer::Parry()
 {
-	if (EWeaponType::Melee == CurWeapon->GetWeaponType())
+	if (EWeaponType::Melee == Weapons[CurWeaponIndex]->GetWeaponType())
 	{
 		//SetMeleeState(EMeleeState::Parry);
 	}

@@ -25,7 +25,6 @@ enum class EMeleeState : uint8
 	Parry,
 };
 
-
 /**
  *
  */
@@ -41,6 +40,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	void InitializeWeaponsFromSlot();
 
 	virtual void SetDead() override;
 
@@ -169,11 +170,18 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UQuickSlot> QuickSlot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UWeaponSlot> WeaponSlot;
+	int32 WeaponSlotCount = 3;
 	
 	// Weapon Section
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TObjectPtr<class AWeaponBase> CurWeapon; // 현재 캐릭터가 들고 있는 무기
+	TArray<TObjectPtr<class AWeaponBase>> Weapons;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	int32 CurWeaponIndex;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
+	//TObjectPtr<class AWeaponBase> CurWeapon; // 현재 캐릭터가 들고 있는 무기
 
 	UFUNCTION()
 	void SwitchWeapon(const FInputActionInstance& Value);

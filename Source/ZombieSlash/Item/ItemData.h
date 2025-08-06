@@ -9,10 +9,10 @@ UENUM(BlueprintType)
 enum class EItemType : uint8
 {
 	Weapon = 0,
-	HealItem,
 	Ammo,
 	Usable,
 	Quest,
+	None,
 };
 
 /**
