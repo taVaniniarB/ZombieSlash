@@ -20,6 +20,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+public:
+	class UZSHUDWidget* GetHUDWidget() { return ZSHUDWidget; }
+
 protected:
 	// HUD À§Á¬ Å¬·¡½º
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)

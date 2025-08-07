@@ -25,6 +25,7 @@ enum class EMeleeState : uint8
 	Parry,
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedSignature, EWeaponType, WeaponType);
 /**
  *
  */
@@ -35,6 +36,9 @@ class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacte
 
 public:
 	ACharacterPlayer();
+	
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
+	FOnWeaponEquippedSignature OnWeaponEquipped;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -183,10 +187,14 @@ protected:
 
 	UFUNCTION()
 	void SwitchWeapon(const FInputActionInstance& Value);
+
+	void EquipWeaponByIndex(int32 Index);
+	void HandleAmmoChanged(int32 NewAmmo, int32 MaxAmmo);
 	
 	// HUD Section
 protected:
 	virtual void SetupHUDWidget(class UZSHUDWidget* InHUDWidget) override;
+	virtual void BindWeaponEquippedEvent(UZSHUDWidget* InHUDWidget) override;
 
 	// Attack Target
 protected:

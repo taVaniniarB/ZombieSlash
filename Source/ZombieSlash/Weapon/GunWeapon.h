@@ -6,6 +6,8 @@
 #include "Weapon/WeaponBase.h"
 #include "GunWeapon.generated.h"
 
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAmmoChanged, const int32 /*CurAmmo*/, const int32 /*MaxAmmo*/);
 /**
  * 
  */
@@ -17,27 +19,23 @@ class ZOMBIESLASH_API AGunWeapon : public AWeaponBase
 public:
     AGunWeapon();
 
+    FOnAmmoChanged OnAmmoChanged;
+
 protected:
     virtual void BeginPlay() override;
-
-public:
     virtual void OnEquip() override;
     virtual void OnUnequip() override;
 
-
 protected:
-    /*UPROPERTY(BlueprintReadOnly)
-    float CurDelay;*/
-
     UPROPERTY(BlueprintReadOnly, Category = "Ammo")
     int32 CurAmmo;
 
     UPROPERTY()
-    TObjectPtr<class UInventoryComponent> Inventory;
+    TObjectPtr<class UInventoryComponent> Inventory; // 장전 시 인벤토리를 조회하여 총알 아이템을 찾는다
 
 public:
     virtual void StartAttack() override;
-    //virtual bool CanAttack() const override;
+    virtual bool CanAttack() const override { return bCanFire; }
 
     // 총기 전용 기능들
     void Fire();
@@ -56,4 +54,5 @@ private:
 
     bool bCanFire;
     void SetCanFire() { bCanFire = true; }
+    int32 GetTotalAmmo();
 };

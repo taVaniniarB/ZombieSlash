@@ -36,20 +36,20 @@ void AGunWeapon::BeginPlay()
 	const UGunData* Gun = GetGunData();
 	CurAmmo = Gun->MaxAmmo;
 	AmmoData = Gun->AmmoData;
-
-	// 플컨->총알, 크로스헤어 HUD CreateWidget, AddToViewport, Invisible
 }
 
 void AGunWeapon::OnEquip()
 {
 	Super::OnEquip();
 	
-	// Gun HUD Visible
+	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
 }
+
 void AGunWeapon::OnUnequip()
 {
 	Super::OnUnequip();
-	// Gun HUD Invisible
+
+	OnAmmoChanged.RemoveAll(GetOwner()); // 바인드된 델리게이트 삭제
 }
 
 // 플레이어 입력에 의해 호출
@@ -64,7 +64,9 @@ void AGunWeapon::StartAttack()
 void AGunWeapon::Fire()
 {
 	bCanFire = false;
+
 	CurAmmo--;
+	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
 
 	// FireDelay초 후 bCanFire를 true로 만든다
 	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, [this]()
@@ -149,6 +151,8 @@ void AGunWeapon::Reload()
 
 bool AGunWeapon::CanReload()
 {
+	if (!Inventory) return false;
+
 	int32 TotalAmmo = Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
 	
 	if (TotalAmmo <= 0) return false;
@@ -179,9 +183,12 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 		return;
 	}
 
+	if (!Inventory) return;
+
 	// 채울 총알의 개수
-	int32 ToCharge = GetGunData()->MaxAmmo - CurAmmo;
-	int32 TotalAmmo = Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
+	int32 MaxAmmo = GetGunData()->MaxAmmo;
+	int32 ToCharge = MaxAmmo - CurAmmo;
+	int32 TotalAmmo = GetTotalAmmo();
 
 	if (TotalAmmo < ToCharge) // 채워야 하는 총알보다 인벤토리 내 총알이 적다면 인벤토리 내 총알의 개수만큼만 장전
 	{
@@ -191,4 +198,13 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 	CurAmmo += ToCharge; // 탄창 채우기
 	
 	Inventory->UseItemByID(AmmoData->GetPrimaryAssetId(), ToCharge);
+
+	OnAmmoChanged.Broadcast(CurAmmo, FMath::Max(0, TotalAmmo - ToCharge)); // UI에 알림
+}
+
+int32 AGunWeapon::GetTotalAmmo()
+{
+	if (!Inventory) return 0;
+
+	return Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
 }

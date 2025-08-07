@@ -23,4 +23,7 @@ class ZOMBIESLASH_API ICharacterHUDInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void SetupHUDWidget(class UZSHUDWidget* InHUDWidget) = 0;
+	
+	// OnWeaponEquipped 이벤트를 구독하기 위한 함수
+	virtual void BindWeaponEquippedEvent(UZSHUDWidget* InHUDWidget) = 0;
 };

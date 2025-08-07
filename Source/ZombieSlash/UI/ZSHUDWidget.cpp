@@ -4,6 +4,7 @@
 #include "UI/ZSHUDWidget.h"
 #include "HPBarWidget.h"
 #include "Interface/CharacterHUDInterface.h"
+#include "AmmoWidget.h"
 
 UZSHUDWidget::UZSHUDWidget(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
@@ -19,16 +20,30 @@ void UZSHUDWidget::NativeConstruct()
 	// 위젯 생성 후에도 이것에 접근하기 위해 멤버변수에 넣어준다.
 
 	HPBar = Cast<UHPBarWidget>(GetWidgetFromName(TEXT("WidgetHPBar")));
-	
+	AmmoWidget = Cast<UAmmoWidget>(GetWidgetFromName(TEXT("WidgetAmmo")));
+
 	ICharacterHUDInterface* HUDPawn = Cast<ICharacterHUDInterface>(GetOwningPlayerPawn());
 	if (HUDPawn)
 	{
 		HPBar->SetOwningActor(GetOwningPlayerPawn());
 		HUDPawn->SetupHUDWidget(this);
+		HUDPawn->BindWeaponEquippedEvent(this);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UZSHUDWidget -> NativeConstruct : ICharacterHUDInterface Cast Failed"));
+	}
+}
+
+void UZSHUDWidget::HandleWeaponEquipped(EWeaponType WeaponType)
+{
+	if (WeaponType == EWeaponType::Gun)
+	{
+		ShowAmmoWidget();
+	}
+	else
+	{
+		HideAmmoWidget();
 	}
 }
 
@@ -40,4 +55,25 @@ void UZSHUDWidget::UpdateHPBar(float NewCurHP)
 void UZSHUDWidget::UpdateStat(const FCharacterStat& InBaseStat, const FCharacterStat& InModifierStat)
 {
 	HPBar->UpdateStat(InBaseStat, InModifierStat);
+}
+
+void UZSHUDWidget::UpdateAmmo(float CurAmmo, float MaxAmmo)
+{
+	AmmoWidget->K2_OnAmmoUpdated(CurAmmo, MaxAmmo);
+}
+
+void UZSHUDWidget::ShowAmmoWidget()
+{
+	if (AmmoWidget)
+	{
+		AmmoWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void UZSHUDWidget::HideAmmoWidget()
+{
+	if (AmmoWidget)
+	{
+		AmmoWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }

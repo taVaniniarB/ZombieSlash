@@ -28,10 +28,16 @@ void AWeaponBase::OnEquip()
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(false);
 
-	ACharacter * Character = GetOwner<ACharacter>();
-	Character->GetMesh()->GetAnimInstance();
-	IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(Character->GetMesh()->GetAnimInstance());
-	Anim->SetCurWeaponType(WeaponData->WeaponType);
+	ACharacter* Character = GetOwner<ACharacter>();
+	if (!Character) return;
+
+	USkeletalMeshComponent* Mesh = Character->GetMesh();
+	if (!Mesh) return;
+	
+	if (IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(Mesh->GetAnimInstance()))
+	{
+		Anim->SetCurWeaponType(WeaponData->WeaponType);
+	}
 }
 
 void AWeaponBase::OnUnequip()

@@ -39,6 +39,7 @@ void UHPBarWidget::UpdateStat(const FCharacterStat& BaseStat, const FCharacterSt
 	{
 		HPProgressBar->SetPercent(CurHP / MaxHP);
 	}*/
+	K2_UpdateHPBarcpp(CurHP / MaxHP);
 }
 
 void UHPBarWidget::UpdateHpBar(float NewCurHP)

@@ -22,6 +22,7 @@
 #include "Interface/WeaponAnimInterface.h"
 #include "Inventory/QuickSlot.h"
 #include "Inventory/WeaponSlot.h"
+#include "Player/ZSPlayerController.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
@@ -158,14 +159,16 @@ void ACharacterPlayer::BeginPlay()
 
 void ACharacterPlayer::InitializeWeaponsFromSlot()
 {
-	UE_LOG(LogTemp, Warning, TEXT("InitializeWeaponsFromSlot Called"));
-
 	// WeaponSlot 내 WeaponData를 참조하여 무기 액터를 생성하고, 이를 Weapons 배열에 보관한다.
 	for (int32 i = 0; i < WeaponSlotCount; ++i)
 	{
 		UWeaponData* NewWeaponData = WeaponSlot->WeaponData[i];
 		if (!NewWeaponData)
+		{
+			Weapons[i]->OnUnequip();
+			Weapons[i] = nullptr;
 			continue;
+		}
 
 		// i 슬롯 내에 무기 인스턴스가 이미 존재하고, 무기 데이터가 동일하면 넘어간다
 		if (Weapons.IsValidIndex(i) && Weapons[i])
@@ -196,11 +199,7 @@ void ACharacterPlayer::InitializeWeaponsFromSlot()
 		Weapons[i] = WeaponInst;
 	}
 
-	AWeaponBase* CurWeapon = Weapons[CurWeaponIndex];
-	CurWeapon->OnEquip();
-	SetGunState(EGunState::Ready, false, false);
-	Stat->SetModifierStat(WeaponSlot->WeaponData[0]->ModifierStat);
-	UpdateWeaponIMC(CurWeapon->GetWeaponType());
+	EquipWeaponByIndex(CurWeaponIndex);
 
 	WeaponSlot->bEquippedWeaponChanged = false;
 }
@@ -302,9 +301,12 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 
 void ACharacterPlayer::Attack()
 {
+	if (!Weapons[CurWeaponIndex]->CanAttack()) return;
+
 	if (EWeaponType::Gun == Weapons[CurWeaponIndex]->GetWeaponType())
 	{
 		EnterAimState();
+
 		IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
 		Anim->Shoot();
 	}
@@ -437,16 +439,13 @@ void ACharacterPlayer::EndReload()
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 {
 	const float ScrollValue = Value.GetValue().Get<float>();
-
 	if (FMath::IsNearlyZero(ScrollValue)) return;
-	int32 Direction = ScrollValue > 0 ? 1 : -1;
-
-	if (bIsZooming) return;
-	if (IsPlayingRootMotion()) return;
-	if (!Inventory) return;
+	if (bIsZooming || IsPlayingRootMotion() || !WeaponSlot) return;
 
 	int32 TotalSlots = WeaponSlot->MaxSlotCount;
 	if (TotalSlots == 0) return;
+
+	int32 Direction = ScrollValue > 0 ? 1 : -1;
 
 	// 다음 유효한 무기를 찾고 현재 무기를 가리킬 인덱스를 세팅한다
 	int32 NewIndex = CurWeaponIndex;
@@ -463,13 +462,52 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	AWeaponBase* PrevWeapon = Weapons[CurWeaponIndex];
 	PrevWeapon->OnUnequip(); // 이전 무기 장착 해제
 
-	SetGunState(EGunState::Ready, false, false);
-	AWeaponBase* CurWeapon = Weapons[NewIndex];
-	CurWeapon->OnEquip();
-	Stat->SetModifierStat(WeaponSlot->WeaponData[NewIndex]->ModifierStat);
-	UpdateWeaponIMC(CurWeapon->GetWeaponType());
+	EquipWeaponByIndex(NewIndex);
 
 	CurWeaponIndex = NewIndex;
+}
+
+void ACharacterPlayer::EquipWeaponByIndex(int32 Index)
+{
+	SetGunState(EGunState::Ready, false, false);
+	AWeaponBase* CurWeapon = Weapons[Index];
+	Stat->SetModifierStat(WeaponSlot->WeaponData[Index]->ModifierStat);
+	UpdateWeaponIMC(CurWeapon->GetWeaponType());
+
+	if (CurWeapon->GetWeaponType() == EWeaponType::Gun)
+	{
+		AGunWeapon* GunWeapon = Cast<AGunWeapon>(CurWeapon);
+		if (GunWeapon)
+		{
+			// HUD 업데이트를 위한 델리게이트 바인딩
+			GunWeapon->OnAmmoChanged.AddUObject(this, &ACharacterPlayer::HandleAmmoChanged);
+		}
+	}
+
+	CurWeapon->OnEquip();
+
+	OnWeaponEquipped.Broadcast(CurWeapon->GetWeaponType());
+}
+
+void ACharacterPlayer::HandleAmmoChanged(int32 NewAmmo, int32 MaxAmmo)
+{
+	UE_LOG(LogTemp, Warning, TEXT("HandleAmmoChanged Called"));
+	// 플레이어 컨트롤러를 통해 HUD에 알림
+	AZSPlayerController* PC = Cast<AZSPlayerController>(GetController());
+	if (PC)
+	{
+		UZSHUDWidget* HUDWidget = PC->GetHUDWidget();
+		if (HUDWidget)
+		{
+			HUDWidget->UpdateAmmo(NewAmmo, MaxAmmo);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HUDWidget Null"));
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("PC Null"));
 }
 
 void ACharacterPlayer::Parry()
@@ -591,6 +629,14 @@ void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
 
 		Stat->OnHPChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateHPBar);
 		Stat->OnStatChanged.AddUObject(InHUDWidget, &UZSHUDWidget::UpdateStat);
+	}
+}
+
+void ACharacterPlayer::BindWeaponEquippedEvent(UZSHUDWidget* InHUDWidget)
+{
+	if (InHUDWidget)
+	{
+		OnWeaponEquipped.AddDynamic(InHUDWidget, &UZSHUDWidget::HandleWeaponEquipped);
 	}
 }
 
