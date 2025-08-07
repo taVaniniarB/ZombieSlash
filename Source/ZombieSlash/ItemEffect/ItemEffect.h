@@ -31,7 +31,7 @@ public:
 
 	virtual void OnExpired();
 
-	virtual void Remove() {}
+	virtual void ClearEffect() {}
 
 	virtual bool IsExpired() const { return ElapsedTime >= Duration; }
 

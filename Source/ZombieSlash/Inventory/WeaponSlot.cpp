@@ -41,9 +41,6 @@ void UWeaponSlot::TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent*
 	if (!ItemManager->GetMetadata(SrcID, Metadata)) return;
 	if (Metadata.ItemType != EItemType::Weapon) return;
 
-	bEquippedWeaponChanged = true;
-
-
 	Super::TransferSlot(DestIdx, SrcIdx, SrcInventory);
 }
 
@@ -94,4 +91,9 @@ void UWeaponSlot::RegistWeaponData(UItemData* ItemData, int32 Idx)
 {
 	UWeaponData* Weapon = Cast<UWeaponData>(ItemData);
 	WeaponData[Idx] = Weapon;
+}
+
+void UWeaponSlot::UpdateInventory()
+{
+    bEquippedWeaponChanged = true;
 }

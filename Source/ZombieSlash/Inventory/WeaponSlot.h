@@ -27,7 +27,7 @@ public:
 	TArray<TObjectPtr<class UWeaponData>> WeaponData;
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
-	uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 무기가 바뀌는 로직 호출
+	uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 새로운 무기를 로드하는 함수를 호출한다
 
 	UFUNCTION(BlueprintCallable)
 	const UWeaponData* GetCurWeaponData(int32 InIndex) const;
@@ -41,7 +41,10 @@ protected:
 
 protected:
 	virtual void TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* SrcInventory) override;
+	
 	void RegistWeaponData(class UItemData* ItemData, int32 Idx);
+
+	virtual void UpdateInventory() override;
 
 private:
 	// 비동기 로딩 추적용 멤버 변수

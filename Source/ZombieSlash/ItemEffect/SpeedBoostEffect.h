@@ -20,7 +20,7 @@ public:
 	float SpeedMultiplier = 1.5f;
 
 	virtual void Apply(AActor* Target) override;
-	virtual void Remove() override;
+	virtual void ClearEffect() override;
 
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FCharacterStat ItemEffectStat;

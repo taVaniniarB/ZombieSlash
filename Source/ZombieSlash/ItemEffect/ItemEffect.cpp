@@ -19,7 +19,7 @@ void UItemEffect::OnExpired()
     {
         if (UEffectManager* Manager = Target->FindComponentByClass<UEffectManager>())
         {
-            Manager->RemoveEffect(this);
+            Manager->ClearEffect(this);
         }
     }
 }

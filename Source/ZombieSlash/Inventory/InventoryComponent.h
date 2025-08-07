@@ -34,39 +34,13 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetInventorySize(int32 InMaxSlotCount);
 
-	// Weapon Slot Section
-public:
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	//TArray<TObjectPtr<class WeaponData>> WeaponSlots; // 무기 슬롯
-	//TArray<FWeaponSlot> WeaponSlots; // 무기 슬롯
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	//int32 WeaponSlotCount = 3;
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	//int32 CurWeaponSlotIdx = 0; // 현재 장착된 슬롯 인덱스
-	//
-	//UPROPERTY(EditAnywhere, Category = Weapon)
-	//uint8 bEquippedWeaponChanged : 1; // 이게 true면 인벤토리 닫을때 무기가 바뀌는 로직 호출
-
-	//UFUNCTION(BlueprintCallable)
-	//bool SwitchWeapon(int32 SlotIdx);
-
-	//UFUNCTION(BlueprintCallable)
-	//bool EquipWeapon(int32 InventoryIndex, int32 SlotNumber);
-
-	//UFUNCTION(BlueprintCallable)
-	//const UWeaponData* GetCurWeaponData() const;
-
-	//UFUNCTION(BlueprintCallable)
-	//void InitializeWeaponSlots();
-
-
 public:
 	UFUNCTION(BlueprintCallable)
 	bool AddItem(FPrimaryAssetId ItemID, int32 InQuantity);
+	
 	UFUNCTION(BlueprintCallable)
 	void CreateNewStack(int32 Idx, FPrimaryAssetId ID, int32 Quantity);
+
 	UFUNCTION(BlueprintCallable)
 	virtual void TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* SrcInventory);
 
@@ -89,7 +63,7 @@ public:
 	void PlayPickupSound();
 
 	UFUNCTION(BlueprintCallable)
-	void UpdateInventory();
+	virtual void UpdateInventory();
 
 	
 protected:

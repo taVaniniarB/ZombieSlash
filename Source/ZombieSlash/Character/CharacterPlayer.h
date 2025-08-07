@@ -179,9 +179,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	TArray<TObjectPtr<class AWeaponBase>> Weapons;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	int32 CurWeaponIndex;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	//TObjectPtr<class AWeaponBase> CurWeapon; // 현재 캐릭터가 들고 있는 무기
+	int32 CurWeaponIndex = 0;
 
 	UFUNCTION()
 	void SwitchWeapon(const FInputActionInstance& Value);

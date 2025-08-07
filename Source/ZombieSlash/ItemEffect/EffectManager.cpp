@@ -12,12 +12,14 @@ UEffectManager::UEffectManager()
 
 void UEffectManager::AddEffect(UItemEffect* NewEffect)
 {
+	if (!NewEffect) return;
+
 	for (UItemEffect* Effect : ActiveEffects)
 	{
 		// 중복 -> 오래된 것 제거
 		if (Effect && Effect->IsSameType(NewEffect))
 		{
-			Effect->Remove();
+			Effect->ClearEffect();
 			ActiveEffects.Remove(Effect);
 			break;
 		}
@@ -27,11 +29,11 @@ void UEffectManager::AddEffect(UItemEffect* NewEffect)
 	ActiveEffects.Add(NewEffect);
 }
 
-void UEffectManager::RemoveEffect(UItemEffect* Effect)
+void UEffectManager::ClearEffect(UItemEffect* Effect)
 {
 	if (Effect)
 	{
-		Effect->Remove();
+		Effect->ClearEffect();
 		ActiveEffects.Remove(Effect);
 	}
 }
@@ -42,7 +44,7 @@ void UEffectManager::ClearAllEffects()
 	{
 		if (Effect)
 		{
-			Effect->Remove();
+			Effect->ClearEffect();
 		}
 	}
 	ActiveEffects.Empty();
@@ -60,4 +62,3 @@ void UEffectManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		}
 	}
 }
-

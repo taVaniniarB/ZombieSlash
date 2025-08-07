@@ -15,9 +15,9 @@ void USpeedBoostEffect::Apply(AActor* InTarget)
     }
 }
 
-void USpeedBoostEffect::Remove()
+void USpeedBoostEffect::ClearEffect()
 {
-    Super::Remove();
+    Super::ClearEffect();
     UE_LOG(LogTemp, Warning, TEXT("Speed Boost Effect Remove Called"));
     if (ICharacterStatInterface* Character = Cast<ICharacterStatInterface>(Target))
     {

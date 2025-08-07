@@ -16,6 +16,7 @@ public:
 	UEffectManager();
 
 	// 현재 적용 중인 이펙트 배열
+	UPROPERTY()
 	TArray<class UItemEffect*> ActiveEffects;
 
 	UFUNCTION(BlueprintCallable)
@@ -26,7 +27,7 @@ public:
 	// 성능 문제 방지 위해 OnEffectChanged 방식으로 UI를 갱신하거나, 0.2초 주기의 SetTimer 활용
 
 	void AddEffect(UItemEffect* NewEffect);
-	void RemoveEffect(UItemEffect* Effect);
+	void ClearEffect(UItemEffect* Effect);
 	void ClearAllEffects();
 
 public:	

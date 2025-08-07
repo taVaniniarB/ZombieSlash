@@ -154,7 +154,6 @@ void ACharacterPlayer::BeginPlay()
 
 	// Weapon Setting
 	WeaponSlot->LoadWeaponDataFromItems(); // 아이템 로드 및 WeaponData 배열 세팅
-	//InitializeWeaponsFromSlot(); // WeaponSlot의 WeaponData 배열 참조하여 액터 스폰 및 무기 장착
 }
 
 void ACharacterPlayer::InitializeWeaponsFromSlot()
@@ -164,21 +163,39 @@ void ACharacterPlayer::InitializeWeaponsFromSlot()
 	// WeaponSlot 내 WeaponData를 참조하여 무기 액터를 생성하고, 이를 Weapons 배열에 보관한다.
 	for (int32 i = 0; i < WeaponSlotCount; ++i)
 	{
-		UWeaponData* WeaponData = WeaponSlot->WeaponData[i];
-
-		if (!WeaponData)
+		UWeaponData* NewWeaponData = WeaponSlot->WeaponData[i];
+		if (!NewWeaponData)
 			continue;
 
+		// i 슬롯 내에 무기 인스턴스가 이미 존재하고, 무기 데이터가 동일하면 넘어간다
+		if (Weapons.IsValidIndex(i) && Weapons[i])
+		{
+			if (Weapons[i]->GetWeaponData() == NewWeaponData)
+				continue;
+
+			// 무기 데이터가 다르다면 기존 무기를 제거한다
+			Weapons[i]->OnUnequip();
+			Weapons[i] = nullptr; // 참조 제거
+		}
+
+		// 새 무기 액터 생성
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(WeaponData->WeaponActorClass, SpawnParams);
-		Weapons[i] = WeaponInst;
+		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(NewWeaponData->WeaponActorClass, SpawnParams);
+		if (!WeaponInst)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Weapon spawn failed at slot %d"), i);
+			continue;
+		}
+
 		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->GetSocketName());
-		WeaponInst->InitializeWeapon(WeaponData, this);
-		WeaponInst->OnUnequip();
+		WeaponInst->InitializeWeapon(NewWeaponData, this);
+		WeaponInst->OnUnequip(); // 스폰된 무기를 Invisible하게 만들 목적
+
+		Weapons[i] = WeaponInst;
 	}
-	CurWeaponIndex = 0;
+
 	AWeaponBase* CurWeapon = Weapons[CurWeaponIndex];
 	CurWeapon->OnEquip();
 	SetGunState(EGunState::Ready, false, false);
@@ -431,9 +448,8 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 	int32 TotalSlots = WeaponSlot->MaxSlotCount;
 	if (TotalSlots == 0) return;
 
-	int32 NewIndex = CurWeaponIndex;
-
 	// 다음 유효한 무기를 찾고 현재 무기를 가리킬 인덱스를 세팅한다
+	int32 NewIndex = CurWeaponIndex;
 	for (int32 i = 0; i < TotalSlots; ++i)
 	{
 		NewIndex = (NewIndex + Direction + TotalSlots) % TotalSlots;
@@ -444,16 +460,16 @@ void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 		}
 	}
 
-	AWeaponBase* CurWeapon = Weapons[CurWeaponIndex];
-	CurWeapon->OnUnequip(); // 이전 무기 장착 해제
-
-	CurWeaponIndex = NewIndex;
+	AWeaponBase* PrevWeapon = Weapons[CurWeaponIndex];
+	PrevWeapon->OnUnequip(); // 이전 무기 장착 해제
 
 	SetGunState(EGunState::Ready, false, false);
-	CurWeapon = Weapons[NewIndex];
+	AWeaponBase* CurWeapon = Weapons[NewIndex];
 	CurWeapon->OnEquip();
-	Stat->SetModifierStat(WeaponSlot->WeaponData[0]->ModifierStat);
+	Stat->SetModifierStat(WeaponSlot->WeaponData[NewIndex]->ModifierStat);
 	UpdateWeaponIMC(CurWeapon->GetWeaponType());
+
+	CurWeaponIndex = NewIndex;
 }
 
 void ACharacterPlayer::Parry()
