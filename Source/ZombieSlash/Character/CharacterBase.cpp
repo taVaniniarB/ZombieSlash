@@ -16,6 +16,9 @@
 #include "ItemEffect/HealEffect.h"
 #include "GameData/CharacterStat.h"
 #include "ItemEffect/EffectManager.h"
+//#include "Interface/CameraShakeInterface.h"
+#include "Enums/CameraShakeType.h"
+#include "Subsystem/GameplayEventSubsystem.h"
 
 
 // Sets default values
@@ -66,6 +69,37 @@ float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 
 	Stat->ApplyDamage(DamageAmount);
 
+	if (EventInstigator)
+	{
+		ECameraShakeType ShakeType = ECameraShakeType::EnemyHit;
+		float ShakeScale = 1.0f;
+
+		if (Stat->GetCurHP() <= 0)
+		{
+			ShakeType = ECameraShakeType::EnemyDeath;
+			ShakeScale = 2.0f;
+		}
+
+		UGameplayEventSubsystem::Get(this)->OnCameraShakeRequested.Broadcast(ShakeType, ShakeScale);
+
+		// Interface 사용 시 코드
+		/*APawn* InstigatorPawn = EventInstigator->GetPawn();
+		ICameraShakeInterface* PawnCam = Cast<ICameraShakeInterface>(InstigatorPawn);
+		if (PawnCam)
+		{
+			ECameraShakeType ShakeType = ECameraShakeType::EnemyHit;
+			float CameraShakeScale = 1.0f;
+			
+			if (Stat->GetCurHP() <= 0)
+			{
+				ShakeType = ECameraShakeType::EnemyDeath;
+				CameraShakeScale = 2.0f;
+			}
+
+			PawnCam->ShakeCamera(ShakeType, CameraShakeScale);
+		}*/
+	}
+
 	return DamageAmount;
 }
 
@@ -80,7 +114,7 @@ void ACharacterBase::SetRunMode()
 
 void ACharacterBase::AttackHitCheck()
 {
-	FHitResult OutHitResult;
+	//FHitResult OutHitResult;
 
 	// Trace Tag: 콜리전 분석할 때의 식별자. 수행할 작업에 대해 Attack이라는 태그로 조사할 수 있게 함
 	// Trace Complex: 복잡한 형태(오목 concave)는 올라서는 것만 가능한데, 이런 복잡한 충돌체도 감지할 것인지에 대한 옵션
@@ -94,7 +128,7 @@ void ACharacterBase::AttackHitCheck()
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * (GetCapsuleComponent()->GetScaledCapsuleRadius());
 	const FVector End = Start + GetActorForwardVector() * AttackRange;
 
-	bool HitDetected = GetWorld()->SweepSingleByChannel(
+	/*bool HitDetected = GetWorld()->SweepSingleByChannel(
 		OutHitResult, Start, End,
 		FQuat::Identity, CCHANNEL_ZSACTION,
 		FCollisionShape::MakeSphere(AttackRadius), Params);
@@ -103,15 +137,32 @@ void ACharacterBase::AttackHitCheck()
 	{
 		FDamageEvent DamageEvent;
 		OutHitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+	}*/
+	TArray<FHitResult> OutHitResults;
+	bool HitDetected = GetWorld()->SweepMultiByChannel(
+		OutHitResults, Start, End,
+		FQuat::Identity, CCHANNEL_ZSACTION,
+		FCollisionShape::MakeSphere(AttackRadius), Params);
+
+	if (HitDetected)
+	{
+		for (const FHitResult& HitResult : OutHitResults)
+		{
+			if (HitResult.GetActor() && HitResult.GetActor() != this)
+			{
+				FDamageEvent DamageEvent;
+				HitResult.GetActor()->TakeDamage(AttackDamage, DamageEvent, GetController(), this);
+			}
+		}
 	}
 
 #if ENABLE_DRAW_DEBUG
-	FVector CapsuleOrigin = Start + 0.5 * (End - Start);
+	/*FVector CapsuleOrigin = Start + 0.5 * (End - Start);
 	float CapsuleHalfHeight = (AttackRange * 0.5) + AttackRadius;
 	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
 		FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor,
-		false, 3.f);
+		false, 3.f);*/
 #endif
 }
 

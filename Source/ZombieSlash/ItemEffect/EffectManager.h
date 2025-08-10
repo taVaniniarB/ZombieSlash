@@ -22,10 +22,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	const TArray<UItemEffect*>& GetActiveEffects() const { return ActiveEffects; }
 
-	// HUD 표기 시
-	// EffectBarWidget 만들고 CharacterReference->EffectManager->GetActiveEffects()로 가져와서 For Each로 이펙트 정보를 읽고 개별 EffectIconWidget을 생성하여 표시
-	// 성능 문제 방지 위해 OnEffectChanged 방식으로 UI를 갱신하거나, 0.2초 주기의 SetTimer 활용
-
 	void AddEffect(UItemEffect* NewEffect);
 	void ClearEffect(UItemEffect* Effect);
 	void ClearAllEffects();
@@ -33,3 +29,8 @@ public:
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };
+
+
+// HUD 표기 시
+// EffectBarWidget 만들고 CharacterReference->EffectManager->GetActiveEffects()로 가져와서 For Each로 이펙트 정보를 읽고 개별 EffectIconWidget을 생성하여 표시
+// 성능 문제 방지 위해 OnEffectChanged 방식으로 UI를 갱신하거나, 0.2초 주기의 SetTimer 활용

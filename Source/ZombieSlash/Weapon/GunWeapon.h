@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon/WeaponBase.h"
+#include "Enums/CameraShakeType.h"
 #include "GunWeapon.generated.h"
 
 
@@ -20,6 +21,7 @@ public:
     AGunWeapon();
 
     FOnAmmoChanged OnAmmoChanged;
+    void OnAmmoUpdated(FPrimaryAssetId ChangedAmmoID, int32 NewQuantity);
 
 protected:
     virtual void BeginPlay() override;
@@ -46,6 +48,9 @@ public:
 
     void OnReloadMontageEnded(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
     FORCEINLINE bool HasAmmo() const { return CurAmmo >= 0 ? true : false; }
+    
+    // 총 발사 시 카메라 발동시킬 카메라 셰이크 타입
+    ECameraShakeType CameraShakeType;
 
 private:
     // 총기 데이터로 캐스팅해서 사용
@@ -55,4 +60,5 @@ private:
     bool bCanFire;
     void SetCanFire() { bCanFire = true; }
     int32 GetTotalAmmo();
+    void ShakeCamera();
 };

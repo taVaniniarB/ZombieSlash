@@ -11,12 +11,6 @@ UZSGameSingleton::UZSGameSingleton()
 	{
 		CharacterStatTable = CharacterStatRef.Object;
 	}
-
-	static ConstructorHelpers::FObjectFinder<UDataTable> ItemMetadatatRef(TEXT("/Script/Engine.DataTable'/Game/GameData/ItemMetaDataTable.ItemMetaDataTable'"));
-	if (nullptr != ItemMetadatatRef.Object)
-	{
-		ItemMetadataTable = ItemMetadatatRef.Object;
-	}
 }
 
 UZSGameSingleton& UZSGameSingleton::Get()
@@ -47,24 +41,4 @@ FCharacterStat UZSGameSingleton::GetCharacterStat(FName InID) const
 		UE_LOG(LogTemp, Warning, TEXT("CharacterStatTable was null"));
 
 	return FCharacterStat();
-}
-
-bool UZSGameSingleton::GetItemMetadata(FPrimaryAssetId InID, FItemMetadata& OutMetadata) const
-{
-	if (!ItemMetadataTable) return false;
-
-	// Row Name은 PrimaryAssetId의 Name 부분
-	FName RowName = InID.PrimaryAssetName;
-	FItemMetadata* Metadata = ItemMetadataTable->FindRow<FItemMetadata>(RowName, TEXT("ItemMetadata Lookup"));
-
-	if (Metadata)
-	{
-		OutMetadata = *Metadata;
-		return true;
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("메타데이터 찾지 못함: %s"), *InID.ToString());
-		return false;
-	}
 }

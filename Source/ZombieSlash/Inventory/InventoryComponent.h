@@ -9,6 +9,8 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUpdatedInventory);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryAmmoChanged, FPrimaryAssetId /*AmmoID*/, int32 /*NewQuantity*/);
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZOMBIESLASH_API UInventoryComponent : public UActorComponent
@@ -20,6 +22,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Events")
 	FOnUpdatedInventory OnUpdatedInventory;
+
+	FOnInventoryAmmoChanged OnAmmoChanged;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -67,9 +71,13 @@ public:
 
 	
 protected:
-	int32 FindStackableSlotIndex(const class UItemData* ItemData) const;
-
 	int32 FindEmptySlotIndex() const;
 
 	int32 FindItemSlotIndexByID(FPrimaryAssetId InID) const;
+
+private:
+	bool TryGetItemMetadata(FPrimaryAssetId ItemID, struct FItemMetadata& OutMetadata);
+	int32 AddToExistingStacks(FPrimaryAssetId ItemID, int32 Quantity, int32 MaxStack);
+	bool AddToNewStacks(FPrimaryAssetId ItemID, int32 Quantity, int32 MaxStack);
+	void BroadcastAmmoChanged(FPrimaryAssetId ItemID);
 };

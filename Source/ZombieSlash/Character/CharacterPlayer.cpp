@@ -23,6 +23,7 @@
 #include "Inventory/QuickSlot.h"
 #include "Inventory/WeaponSlot.h"
 #include "Player/ZSPlayerController.h"
+#include "Camera/CameraControlComponent.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
@@ -44,6 +45,7 @@ ACharacterPlayer::ACharacterPlayer()
 	CameraBoom->SocketOffset = FVector(0.f, 45.f, 70.f);
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 22.f));
 	CameraBoom->bUsePawnControlRotation = true;
+	CameraController = CreateDefaultSubobject<UCameraControlComponent>(TEXT("CameraController"));
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -708,4 +710,9 @@ AActor* ACharacterPlayer::GetTargetActor()
 #endif
 	}
 	return AttackTarget;
+}
+
+void ACharacterPlayer::ShakeCamera(ECameraShakeType ShakeType, float Scale)
+{
+	//CameraController->PlayCameraShake(ShakeType, Scale);
 }

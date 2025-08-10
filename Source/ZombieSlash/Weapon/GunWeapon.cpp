@@ -9,6 +9,7 @@
 #include "Physics/ZSCollision.h"
 #include "Interface/CharacterWeaponInterface.h"
 #include "Inventory/InventoryComponent.h"
+#include "Interface/CameraShakeInterface.h"
 #include "Item/AmmoItemData.h"
 
 AGunWeapon::AGunWeapon()
@@ -16,6 +17,8 @@ AGunWeapon::AGunWeapon()
 	SocketName = TEXT("Handgun_Socket");
 	bCanFire = true;
 }
+
+
 
 void AGunWeapon::BeginPlay()
 {
@@ -43,13 +46,24 @@ void AGunWeapon::OnEquip()
 	Super::OnEquip();
 	
 	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
+	Inventory->OnAmmoChanged.AddUObject(this, &AGunWeapon::OnAmmoUpdated);
 }
 
 void AGunWeapon::OnUnequip()
 {
 	Super::OnUnequip();
 
-	OnAmmoChanged.RemoveAll(GetOwner()); // 바인드된 델리게이트 삭제
+	// 바인드된 델리게이트 삭제
+	OnAmmoChanged.RemoveAll(GetOwner());
+	Inventory->OnAmmoChanged.RemoveAll(this);
+}
+
+void AGunWeapon::OnAmmoUpdated(FPrimaryAssetId ChangedAmmoID, int32 NewQuantity)
+{
+	if (AmmoData && AmmoData->GetPrimaryAssetId() == ChangedAmmoID)
+	{
+		OnAmmoChanged.Broadcast(CurAmmo, NewQuantity);
+	}
 }
 
 // 플레이어 입력에 의해 호출
@@ -64,6 +78,8 @@ void AGunWeapon::StartAttack()
 void AGunWeapon::Fire()
 {
 	bCanFire = false;
+	
+	ShakeCamera();
 
 	CurAmmo--;
 	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
@@ -197,9 +213,10 @@ void AGunWeapon::OnReloadMontageEnded(class UAnimMontage* Montage, bool bInterru
 
 	CurAmmo += ToCharge; // 탄창 채우기
 	
-	Inventory->UseItemByID(AmmoData->GetPrimaryAssetId(), ToCharge);
-
-	OnAmmoChanged.Broadcast(CurAmmo, FMath::Max(0, TotalAmmo - ToCharge)); // UI에 알림
+	if (Inventory->UseItemByID(AmmoData->GetPrimaryAssetId(), ToCharge))
+	{
+		OnAmmoChanged.Broadcast(CurAmmo, FMath::Max(0, TotalAmmo - ToCharge)); // UI에 알림
+	}
 }
 
 int32 AGunWeapon::GetTotalAmmo()
@@ -207,4 +224,13 @@ int32 AGunWeapon::GetTotalAmmo()
 	if (!Inventory) return 0;
 
 	return Inventory->GetItemCountByID(GetGunData()->AmmoData->GetPrimaryAssetId());
+}
+
+void AGunWeapon::ShakeCamera()
+{
+	/*ICameraShakeInterface* Pawn = Cast<ICameraShakeInterface>(GetOwner());
+	if (Pawn)
+	{
+		Pawn->ShakeCamera(CameraShakeType, 1.0f);
+	}*/
 }

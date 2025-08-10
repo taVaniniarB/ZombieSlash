@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "Interface/CharacterItemInterface.h"
 #include "Interface/CharacterHUDInterface.h"
+#include "Interface/CameraShakeInterface.h"
 #include "Enums/WeaponType.h"
 #include "CharacterPlayer.generated.h"
 
@@ -30,7 +31,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedSignature, EWeaponT
  *
  */
 UCLASS()
-class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterItemInterface, public ICharacterHUDInterface
+class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterItemInterface, public ICharacterHUDInterface, public ICameraShakeInterface
 {
 	GENERATED_BODY()
 
@@ -202,4 +203,12 @@ protected:
 	AActor* GetTargetActor();
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Target)
 	TObjectPtr<AActor> AttackTarget;
+
+	// Camera Section
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UCameraControlComponent> CameraController;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ShakeCamera(enum ECameraShakeType ShakeType, float Scale) override;
 };

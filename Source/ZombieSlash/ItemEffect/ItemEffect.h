@@ -23,15 +23,15 @@ public:
 	float ElapsedTime = 0.0f;
 
 	UPROPERTY()
-	TWeakObjectPtr<AActor> Target;
+	TWeakObjectPtr<AActor> Target; // 이펙트를 적용할 대상
 
-	virtual void Apply(AActor* InTarget) { Target = InTarget; }
+	virtual void Apply(AActor* InTarget) { Target = InTarget; } // 이펙트를 실제로 적용시키는 함수
 
-	virtual void Tick(float DeltaTime);
+	virtual void Tick(float DeltaTime); // 도트 대미지처럼 Tick이 필요한 경우 오버라이드
 
-	virtual void OnExpired();
+	virtual void OnExpired(); // 이펙트 Duration 종료 시 호출
 
-	virtual void ClearEffect() {}
+	virtual void ClearEffect() {} // Target에 적용된 이펙트를 원상복구하는 함수
 
 	virtual bool IsExpired() const { return ElapsedTime >= Duration; }
 

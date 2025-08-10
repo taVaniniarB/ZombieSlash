@@ -5,13 +5,19 @@
 #include "Engine/AssetManager.h"
 #include "ItemData.h"
 #include "GameData/ItemMetaData.h"
-#include "GameData/ZSGameSingleton.h"
+
+UItemManagerSubsystem::UItemManagerSubsystem()
+{
+	static ConstructorHelpers::FObjectFinder<UDataTable> ItemMetadatatRef(TEXT("/Script/Engine.DataTable'/Game/GameData/ItemMetaDataTable.ItemMetaDataTable'"));
+	if (nullptr != ItemMetadatatRef.Object)
+	{
+		ItemMetadataTable = ItemMetadatatRef.Object;
+	}
+}
 
 void UItemManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-	PreloadItemData();
 }
 
 void UItemManagerSubsystem::Deinitialize()
@@ -30,6 +36,26 @@ void UItemManagerSubsystem::PreloadItemData()
 	for (const FPrimaryAssetId& ID : AssetIDs)
 	{
 		AssetManager.LoadPrimaryAsset(ID, TArray<FName>(), FStreamableDelegate(), 0);
+	}
+}
+
+bool UItemManagerSubsystem::GetMetadata(FPrimaryAssetId InID, FItemMetadata& OutMetadata) const
+{
+	if (!ItemMetadataTable) return false;
+
+	// Row Name은 PrimaryAssetId의 Name 부분
+	FName RowName = InID.PrimaryAssetName;
+	FItemMetadata* Metadata = ItemMetadataTable->FindRow<FItemMetadata>(RowName, TEXT("ItemMetadata Lookup"));
+
+	if (Metadata)
+	{
+		OutMetadata = *Metadata;
+		return true;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("메타데이터 찾지 못함: %s"), *InID.ToString());
+		return false;
 	}
 }
 
@@ -79,11 +105,6 @@ UItemData* UItemManagerSubsystem::GetCachedItemData(FPrimaryAssetId ItemID)
 {
 	UItemData** CachedItem = ItemDataCache.Find(ItemID);
 	return CachedItem ? *CachedItem : nullptr;
-}
-
-bool UItemManagerSubsystem::GetMetadata(const FPrimaryAssetId& ItemID, FItemMetadata& OutMetadata) const
-{
-	return UZSGameSingleton::Get().GetItemMetadata(ItemID, OutMetadata);
 }
 
 void UItemManagerSubsystem::AddToCache(FPrimaryAssetId ItemID, UItemData* ItemData)
