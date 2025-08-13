@@ -2,18 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
+#include "Enums/ItemType.h"
 #include "ItemData.generated.h"
 
-
-UENUM(BlueprintType)
-enum class EItemType : uint8
-{
-	Weapon = 0,
-	Ammo,
-	Usable,
-	Quest,
-	None,
-};
 
 /**
  * 

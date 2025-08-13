@@ -1,13 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Item/ItemPickup.h"
 #include "Components/SphereComponent.h"
 #include "Physics/ZSCollision.h"
 #include "Engine/HitResult.h"
-#include "Interface/CharacterItemInterface.h"
+#include "Interface/CharacterInteractInterface.h"
+#include "Item/ItemData.h"
+#include "GameData/ItemMetadata.h"
+#include "Item/ItemManagerSubsystem.h"
 
-// Sets default values
+
 AItemPickup::AItemPickup()
 {
 	Trigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerSphere"));
@@ -25,28 +28,53 @@ AItemPickup::AItemPickup()
 	Quantity = 1;
 }
 
-// Called when the game starts or when spawned
-void AItemPickup::BeginPlay()
+void AItemPickup::Interact_Implementation(AActor* Interactor)
 {
-	Super::BeginPlay();
-	
+	ICharacterInteractInterface* Pawn = Cast<ICharacterInteractInterface>(Interactor);
+	if (Pawn)
+	{
+		UItemManagerSubsystem* ItemMgr = UItemManagerSubsystem::Get(this);
+		FItemMetadata Metadata;
+		ItemMgr->GetMetadata(ItemID, Metadata);
+		if (Pawn->PickupItem(ItemID, Metadata.ItemType, Quantity))
+		{
+			Destroy();
+			Pawn->RemoveOverlappingInteractable(this);
+		}
+	}
+}
+
+FText AItemPickup::GetDisplayMessage_Implementation() const
+{
+	if (UItemManagerSubsystem* ItemMgr = UItemManagerSubsystem::Get(this))
+	{
+		FItemMetadata Metadata;
+		if (ItemMgr->GetMetadata(ItemID, Metadata))
+		{
+			return FText::Format(
+				FText::FromString(TEXT("{0} 줍기")), FText::FromString(Metadata.DisplayName) // FString -> FText 변환
+			);
+		}
+	}
+
+	return FText();
 }
 
 void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepHitResult)
 {
-	ICharacterItemInterface* OverlappingPawn = Cast<ICharacterItemInterface>(OtherActor);
+	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->AddOverlappingItem(this);
+		OverlappingPawn->AddOverlappingInteractable(this);
 	}
 }
 
 void AItemPickup::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	ICharacterItemInterface* OverlappingPawn = Cast<ICharacterItemInterface>(OtherActor);
+	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->RemoveOverlappingItem(this);
+		OverlappingPawn->RemoveOverlappingInteractable(this);
 	}
 }
 

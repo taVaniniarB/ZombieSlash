@@ -69,6 +69,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void UpdateInventory();
 
+	bool HasItem(FPrimaryAssetId ItemID);
+
 	
 protected:
 	int32 FindEmptySlotIndex() const;

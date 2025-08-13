@@ -5,9 +5,8 @@
 #include "CoreMinimal.h"
 #include "Character/CharacterBase.h"
 #include "InputActionValue.h"
-#include "Interface/CharacterItemInterface.h"
+#include "Interface/CharacterInteractInterface.h"
 #include "Interface/CharacterHUDInterface.h"
-#include "Interface/CameraShakeInterface.h"
 #include "Enums/WeaponType.h"
 #include "CharacterPlayer.generated.h"
 
@@ -31,7 +30,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedSignature, EWeaponT
  *
  */
 UCLASS()
-class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterItemInterface, public ICharacterHUDInterface, public ICameraShakeInterface
+class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacterInteractInterface, public ICharacterHUDInterface
 {
 	GENERATED_BODY()
 
@@ -42,6 +41,8 @@ public:
 	FOnWeaponEquippedSignature OnWeaponEquipped;
 
 	virtual void Tick(float DeltaTime) override;
+
+	virtual bool PickupItem(FPrimaryAssetId ItemID, EItemType ItemType, int32 Quantity) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -94,7 +95,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputMappingContext> InteractionIMC;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UInputAction> PickupAction;
+	TObjectPtr<class UInputAction> InteractionAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> QuickSlotX;
@@ -106,7 +107,9 @@ protected:
 
 	void Attack();
 
-	void PickupItem();
+	void Interact();
+	UFUNCTION()
+	virtual bool HasItem_Implementation(FPrimaryAssetId ItemID) override;
 	void UseQuickSlotX();
 
 	// Gun
@@ -162,16 +165,23 @@ protected:
 	void UpdateWeaponIMC(EWeaponType NewWeaponType);
 	void ActiveCombatAction(bool bActive);
 
-	// Inventory Section
+	// Interaction Section
 protected:
-	void AddOverlappingItem(class AItemPickup* InItemData);
-	void RemoveOverlappingItem(class AItemPickup* InItemData);
+	TObjectPtr<class UInteractionComponent> Interaction;
+	UFUNCTION(BlueprintCallable)
+	AActor* GetClosestInteractable();
+	// ÆÄ»çµå
+	void AddOverlappingInteractable(AActor* InInteractable);
+	void RemoveOverlappingInteractable(AActor* InInteractable);
+	
+	/*
 	void UpdateClosestItem();
 	TArray<class AItemPickup*> OverlappingItems;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
-	TObjectPtr<AItemPickup> ClosestItem;
+	TObjectPtr<AItemPickup> ClosestItem;*/
 
+	// Inventory Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UQuickSlot> QuickSlot;
@@ -208,7 +218,4 @@ protected:
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UCameraControlComponent> CameraController;
-
-	UFUNCTION(BlueprintCallable)
-	virtual void ShakeCamera(enum ECameraShakeType ShakeType, float Scale) override;
 };

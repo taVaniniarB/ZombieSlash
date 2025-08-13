@@ -24,6 +24,7 @@
 #include "Inventory/WeaponSlot.h"
 #include "Player/ZSPlayerController.h"
 #include "Camera/CameraControlComponent.h"
+#include "Interaction/InteractionComponent.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
@@ -37,6 +38,9 @@ ACharacterPlayer::ACharacterPlayer()
 	WeaponSlot = CreateDefaultSubobject<UWeaponSlot>(TEXT("Weaponslot"));
 	WeaponSlot->SetInventorySize(WeaponSlotCount);
 	WeaponSlot->OnUpdatedWeaponSlot.BindUObject(this, &ACharacterPlayer::InitializeWeaponsFromSlot);
+
+	// Interaction
+	Interaction = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
 
 	// Camera
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
@@ -103,7 +107,7 @@ ACharacterPlayer::ACharacterPlayer()
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionPickupRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Pickup.IA_Pickup'"));
 	if (nullptr != InputActionPickupRef.Object)
 	{
-		PickupAction = InputActionPickupRef.Object;
+		InteractionAction = InputActionPickupRef.Object;
 	}
 	static ConstructorHelpers::FObjectFinder<UInputAction> InputActionHealRef(TEXT("/Script/EnhancedInput.InputAction'/Game/Input/InteractionAction/IA_Heal.IA_Heal'"));
 	if (nullptr != InputActionHealRef.Object)
@@ -137,7 +141,7 @@ void ACharacterPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	UpdateClosestItem();
+	//UpdateClosestItem();
 }
 
 void ACharacterPlayer::BeginPlay()
@@ -239,8 +243,8 @@ void ACharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		// Attack
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Attack);
 
-		// Pickup
-		EnhancedInputComponent->BindAction(PickupAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::PickupItem);
+		// Interaction
+		EnhancedInputComponent->BindAction(InteractionAction, ETriggerEvent::Triggered, this, &ACharacterPlayer::Interact);
 
 		// QuickSlot(X)
 		EnhancedInputComponent->BindAction(QuickSlotX, ETriggerEvent::Triggered, this, &ACharacterPlayer::UseQuickSlotX);
@@ -316,36 +320,49 @@ void ACharacterPlayer::Attack()
 	Weapons[CurWeaponIndex]->StartAttack();
 }
 
-void ACharacterPlayer::PickupItem()
+bool ACharacterPlayer::PickupItem(FPrimaryAssetId ItemID, EItemType ItemType, int32 Quantity)
 {
-	if (!ClosestItem || !ClosestItem->ItemData)
+	/*if (!ClosestItem || !ClosestItem->ItemData)
 	{
 		return;
 	}
 
-	FPrimaryAssetId ID = ClosestItem->ItemData->GetPrimaryAssetId();
+	FPrimaryAssetId ID = ClosestItem->ItemData->GetPrimaryAssetId();*/
 
 	bool QuickSlotSuccess = false;
-	if (ClosestItem->ItemData->ItemType == EItemType::Usable)
+	if (ItemType == EItemType::Usable)
 	{
-		QuickSlotSuccess = QuickSlot->AddItem(ID, ClosestItem->Quantity);
+		QuickSlotSuccess = QuickSlot->AddItem(ItemID, Quantity);
 	}
 
 	bool MainInventorySuccess = false;
 	if (!QuickSlotSuccess)
 	{
-		MainInventorySuccess = Inventory->AddItem(ID, ClosestItem->Quantity);
+		MainInventorySuccess = Inventory->AddItem(ItemID, Quantity);
 	}
 
 	if (QuickSlotSuccess || MainInventorySuccess)
 	{
-		ClosestItem->Destroy();
-		OverlappingItems.Remove(ClosestItem);
+		//ClosestItem->Destroy();
+		//OverlappingItems.Remove(ClosestItem);
+		//Interaction->RemoveOverlappingInteractable()
+		return true;
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Pickup Item Fail"));
 	}
+	return false;
+}
+
+void ACharacterPlayer::Interact()
+{
+	Interaction->TryInteract();
+}
+
+bool ACharacterPlayer::HasItem_Implementation(FPrimaryAssetId ItemID)
+{
+	return Inventory->HasItem(ItemID);
 }
 
 void ACharacterPlayer::UseQuickSlotX()
@@ -592,35 +609,46 @@ void ACharacterPlayer::ActiveCombatAction(bool bActive)
 	}
 }
 
-void ACharacterPlayer::AddOverlappingItem(AItemPickup* InItemData)
+AActor* ACharacterPlayer::GetClosestInteractable()
 {
-	OverlappingItems.Add(InItemData);
-	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
-}
-
-void ACharacterPlayer::RemoveOverlappingItem(AItemPickup* InItemData)
-{
-	OverlappingItems.Remove(InItemData);
-	//UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());
-}
-
-void ACharacterPlayer::UpdateClosestItem()
-{
-	ClosestItem = nullptr;
-	float ClosestDist = FLT_MAX;
-
-	for (AItemPickup* Item : OverlappingItems)
+	if (Interaction)
 	{
-		if (!IsValid(Item)) continue;
-
-		float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
-		if (Dist < ClosestDist)
-		{
-			ClosestDist = Dist;
-			ClosestItem = Item;
-		}
+		return Interaction->ClosestInteractable;
 	}
+	return nullptr;
 }
+
+void ACharacterPlayer::AddOverlappingInteractable(AActor* InInteractable)
+{
+	Interaction->AddOverlappingInteractable(InInteractable);
+	/*OverlappingItems.Add(InItemData);
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());*/
+}
+
+void ACharacterPlayer::RemoveOverlappingInteractable(AActor* InInteractable)
+{
+	Interaction->RemoveOverlappingInteractable(InInteractable);
+	/*OverlappingItems.Remove(InItemData);
+	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());*/
+}
+
+//void ACharacterPlayer::UpdateClosestItem()
+//{
+//	ClosestItem = nullptr;
+//	float ClosestDist = FLT_MAX;
+//
+//	for (AItemPickup* Item : OverlappingItems)
+//	{
+//		if (!IsValid(Item)) continue;
+//
+//		float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
+//		if (Dist < ClosestDist)
+//		{
+//			ClosestDist = Dist;
+//			ClosestItem = Item;
+//		}
+//	}
+//}
 
 void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
 {
@@ -710,9 +738,4 @@ AActor* ACharacterPlayer::GetTargetActor()
 #endif
 	}
 	return AttackTarget;
-}
-
-void ACharacterPlayer::ShakeCamera(ECameraShakeType ShakeType, float Scale)
-{
-	//CameraController->PlayCameraShake(ShakeType, Scale);
 }
