@@ -24,6 +24,8 @@ public:
 protected:
 	virtual void InitializeComponent() override;
 
+	virtual void BeginPlay() override;
+
 public:
 	FOnHPZeroDelegate OnHPZero;
 	FOnHPChangedDelegate OnHPChanged;
@@ -47,6 +49,8 @@ public:
 	// 이 임시 객체에 대한 레퍼런스를 반환하게 되면, 함수가 종료되는 순간 임시 객체는 소멸되고,
 	// 반환된 레퍼런스는 유효하지 않은 메모리(dangling reference)를 가리키게 되어 예측 불가능한 버그나 크래시를 유발할 수 있습니다.
 	FORCEINLINE FCharacterStat GetTotalStat() const { return BaseStat + ModifierStat + ItemEffectStat; }
+
+	FORCEINLINE float GetAttackRadius() const { return (BaseStat + ModifierStat + ItemEffectStat).AttackRadius; }
 
 	FORCEINLINE float GetMaxHP() { return GetTotalStat().MaxHP; }
 	FORCEINLINE float GetCurHP() { return CurHP; }

@@ -90,4 +90,8 @@ protected:
 protected:
 	TObjectPtr<class UEffectManager> EffectManager;
 	void UpdateMovementSpeed();
+
+	// Stat Section
+protected:
+	void ApplyStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat);
 };

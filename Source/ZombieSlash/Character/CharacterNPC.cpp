@@ -40,4 +40,24 @@ void ACharacterNPC::SetDead()
 	HPBar->SetHiddenInGame(true);
 }
 
+float ACharacterNPC::GetAIPatrolRange()
+{
+	return 800.0f;
+}
+
+float ACharacterNPC::GetAIDetectRange()
+{
+	return 400.f;
+}
+
+float ACharacterNPC::GetAIAttackRange()
+{
+	return Stat->GetTotalStat().AttackRange + Stat->GetAttackRadius();
+}
+
+float ACharacterNPC::GetAITurnSpeed()
+{
+	return 0.0f;
+}
+
 

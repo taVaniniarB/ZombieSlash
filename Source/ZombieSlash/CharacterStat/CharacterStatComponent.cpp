@@ -23,6 +23,12 @@ void UCharacterStatComponent::InitializeComponent()
 	SetHP(GetMaxHP());
 }
 
+void UCharacterStatComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	OnStatChanged.Broadcast(GetBaseStat(), GetModifierStat());
+}
+
 void UCharacterStatComponent::SetBaseStat(FName InID)
 {
 	BaseStat = UZSGameSingleton::Get().GetCharacterStat(InID);

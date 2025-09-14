@@ -10,7 +10,6 @@ UInteractionComponent::UInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
@@ -21,13 +20,11 @@ void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 void UInteractionComponent::AddOverlappingInteractable(AActor* InInteractable)
 {
 	OverlappingInteractables.Add(InInteractable);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Interacatble %d"), OverlappingInteractables.Num());
 }
 
 void UInteractionComponent::RemoveOverlappingInteractable(AActor* InInteractable)
 {
 	OverlappingInteractables.Remove(InInteractable);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Interacatble %d"), OverlappingInteractables.Num());
 }
 
 void UInteractionComponent::TryInteract()
@@ -35,7 +32,6 @@ void UInteractionComponent::TryInteract()
 	IInteractable* Interactable = Cast<IInteractable>(ClosestInteractable);
 	if (!Interactable) return;
 
-	// 직접 호출 대신 Execute_ 함수 사용
 	if (IInteractable::Execute_CanInteract(ClosestInteractable, GetOwner()))
 	{
 		IInteractable::Execute_Interact(ClosestInteractable, GetOwner());

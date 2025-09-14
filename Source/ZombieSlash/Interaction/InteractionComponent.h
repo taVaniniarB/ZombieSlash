@@ -34,9 +34,4 @@ protected:
 	UPROPERTY()
 	TArray<class AActor*> OverlappingInteractables;
 
-	void ProccessInteraction(AActor* Interactable);
-	void HandlePickup(AActor* Pickup);
-	void HandleLockedDoor(AActor* Door);
-	void HandleLootableCorpse(AActor* Corpse);
-
 };

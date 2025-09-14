@@ -10,6 +10,6 @@ public class ZombieSlash : ModuleRules
         PublicIncludePaths.AddRange(new string[] { "ZombieSlash" });
         PublicDependencyModuleNames.AddRange(new string[] { 
 			"Core", "CoreUObject", "Engine", "InputCore", 
-			"EnhancedInput", "UMG", "PhysicsCore", "Niagara" });
+			"EnhancedInput", "UMG", "PhysicsCore", "Niagara", "NavigationSystem", "AIModule", "GameplayTasks" });
 	}
 }

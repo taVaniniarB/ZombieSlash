@@ -61,6 +61,7 @@ void ACharacterBase::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	Stat->OnHPZero.AddUObject(this, &ACharacterBase::SetDead);
+	Stat->OnStatChanged.AddUObject(this, &ACharacterBase::ApplyStat);
 }
 
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -273,4 +274,12 @@ void ACharacterBase::UpdateMovementSpeed()
 	float FinalSpeed = (bRunMode ? RunSpeed : BaseSpeed) * Stat->MovementSpeedMultiplier;
 
 	GetCharacterMovement()->MaxWalkSpeed = FinalSpeed;
+}
+
+void ACharacterBase::ApplyStat(const FCharacterStat& BaseStat, const FCharacterStat& ModifierStat)
+{
+	float MovementSpeed = (BaseStat + ModifierStat).MovementSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+
+	UE_LOG(LogTemp, Warning, TEXT("Apply Stat, %s, %f"), *GetName(), MovementSpeed);
 }
