@@ -40,6 +40,11 @@ void AZSAIController::RunAI()
 
 void AZSAIController::StopAI()
 {
+	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	if (BTComponent)
+	{
+		BTComponent->StopTree();
+	}
 }
 
 void AZSAIController::OnPossess(APawn* InPawn)

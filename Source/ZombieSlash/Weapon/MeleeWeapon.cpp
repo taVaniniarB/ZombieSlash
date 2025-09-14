@@ -58,32 +58,26 @@ void AMeleeWeapon::ComboActionBegin()
 
     ICharacterWeaponInterface* OwnerCharacter = Cast<ICharacterWeaponInterface>(GetOwner());
 
-
-    // 이 부분 삭제 고려
-    if (AController* PC = OwnerCharacter->GetWeaponOwnerController())
-    {
-        //PC->SetIgnoreMoveInput(true);
-    }
-
     UAnimInstance* AnimInst = OwnerCharacter->GetWeaponOwnerAnimInstance();
 
+	// 이동 중 공격 몽타주를 지원하는 경우에 대한 코드
+    // 조작감이 어색해서 미사용
     // 캐릭터 이동 중 && 무기가 이동 몽타주 보유
-    if (OwnerCharacter->GetShouldMove() && GetMeleeData()->MoveAttackMontage)
-    {
-        // 루트 모션을 무시하여 이동 중 공격이 가능케 한다.
-        AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
-        ComboActionMontage = GetMeleeData()->MoveAttackMontage;
-    }
-    else // 캐릭터가 정지 상태이거나 이동 몽타주 미보유
-    {
-        AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
-        ComboActionMontage = GetMeleeData()->InPlaceAttackMontage;
-    }
-
+    //if (OwnerCharacter->GetShouldMove() && GetMeleeData()->MoveAttackMontage)
+    //{
+    //    // 루트 모션을 무시하여 이동 중 공격이 가능케 한다.
+    //    AnimInst->RootMotionMode = ERootMotionMode::IgnoreRootMotion;
+    //    ComboActionMontage = GetMeleeData()->MoveAttackMontage;
+    //}
+    //else // 캐릭터가 정지 상태이거나 이동 몽타주 미보유
+    //{
+    //    AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+    //    ComboActionMontage = GetMeleeData()->InPlaceAttackMontage;
+    //}
+    AnimInst->RootMotionMode = ERootMotionMode::RootMotionFromMontagesOnly;
+    ComboActionMontage = GetMeleeData()->InPlaceAttackMontage;
 
     AnimInst->Montage_Play(ComboActionMontage, AttackSpeedRate); // 재생할 몽타주, 재생 속도
-
-    
 
     FOnMontageEnded EndDelegate;
     EndDelegate.BindUObject(this, &AMeleeWeapon::ComboActionEnd);

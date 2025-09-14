@@ -6,6 +6,7 @@
 #include "ZSAI.h"
 #include "Interface/CharacterAIInterface.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "AIController.h"
 
 UBTDecorator_AttackInRange::UBTDecorator_AttackInRange()
 {
@@ -15,20 +16,29 @@ bool UBTDecorator_AttackInRange::CalculateRawConditionValue(UBehaviorTreeCompone
 {
 	Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
 
-	AActor* Owner = OwnerComp.GetOwner();
-	if (!Owner) return false;
+	APawn* ControllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (!ControllingPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ControllingPawn System Was Null"));
+		return EBTNodeResult::Failed;
+	}
+
+	ICharacterAIInterface* AIPawn = Cast<ICharacterAIInterface>(ControllingPawn);
+	if (!AIPawn)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ICharacterAIInterface Inferface Cast Failed"));
+		return false;
+	}
 
 	float AttackRange = 0.0f;
-	if (ICharacterAIInterface* AIPawn = Cast<ICharacterAIInterface>(Owner))
-	{
-		AttackRange = AIPawn->GetAIAttackRange();
-	}
+	AttackRange = AIPawn->GetAIAttackRange();
+	
 
 	// Blackboard에 접근하여 Target 변수 가져오기
 	APawn* Target = Cast<APawn>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(BBKEY_TARGET));
 	if (!Target) return false;
 
-	float Dist = Owner->GetDistanceTo(Target);
+	float Dist = ControllingPawn->GetDistanceTo(Target);
 
 	return (Dist <= AttackRange);
 }

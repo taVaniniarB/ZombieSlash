@@ -307,6 +307,8 @@ void ACharacterPlayer::Look(const FInputActionValue& Value)
 
 void ACharacterPlayer::Attack()
 {
+	Super::Attack();
+
 	if (!Weapons[CurWeaponIndex]->CanAttack()) return;
 
 	if (EWeaponType::Gun == Weapons[CurWeaponIndex]->GetWeaponType())

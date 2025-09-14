@@ -105,7 +105,7 @@ protected:
 	void ExitMontage();
 	void Look(const FInputActionValue& Value);
 
-	void Attack();
+	virtual void Attack() override;
 
 	void Interact();
 	UFUNCTION()

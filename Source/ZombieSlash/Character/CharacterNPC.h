@@ -20,12 +20,21 @@ public:
 
 protected:
 	virtual void SetDead() override;
+	virtual void Attack() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Animation)
+	TObjectPtr<UAnimMontage> AttackMontage;
 
 	// AI Interface
 	virtual float GetAIPatrolRange() override;
 	virtual float GetAIDetectRange() override;
 	virtual float GetAIAttackRange() override;
 	virtual float GetAITurnSpeed() override;
+
+	virtual void AttackByAI() override;
+	virtual void SetAttackFinishedDelegate(FAICharacterAttackFinished InOnAttackFinished) override;
+
+	FAICharacterAttackFinished OnAttackFinished;
 
 	// ¸Ó¸® À§¿¡ ¶ß´Â UI À§Á¬
 protected:

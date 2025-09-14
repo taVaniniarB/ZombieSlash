@@ -49,7 +49,6 @@ void UCameraControlComponent::PlayCameraShake(ECameraShakeType ShakeType, float 
         if (APlayerController* PC = Cast<APlayerController>(OwnerPawn->GetController()))
         {
             PC->ClientStartCameraShake(ShakeClass, Scale);
-            UE_LOG(LogTemp, Warning, TEXT("Shake"))
         }
     }    
 }

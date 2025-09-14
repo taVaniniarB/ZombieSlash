@@ -27,6 +27,7 @@ protected:
 
 	// Attack Hit Section
 protected:
+	virtual void Attack() {};
 	virtual void AttackHitCheck() override; // 인터페이스로부터 오버라이드
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 

@@ -4,6 +4,7 @@
 #include "Character/CharacterNPC.h"
 #include "UI/ZSWidgetComponent.h"
 #include "CharacterStat/CharacterStatComponent.h"
+#include "AI/ZSAIController.h"
 
 ACharacterNPC::ACharacterNPC()
 {
@@ -25,6 +26,11 @@ void ACharacterNPC::SetDead()
 {
 	Super::SetDead();
 
+	AZSAIController* ZSAIController = Cast<AZSAIController>(GetController());
+	if (ZSAIController)
+	{
+		ZSAIController->StopAI();
+	}
 	FTimerHandle DeadTimerHandle;
 
 	// 멤버 함수 만들어서 넣어줄 수 있지만, 액터 없애는 함수를 굳이 만드는 건 번거롭다.
@@ -38,6 +44,17 @@ void ACharacterNPC::SetDead()
 		}), 5.f, false);
 
 	HPBar->SetHiddenInGame(true);
+}
+
+void ACharacterNPC::Attack()
+{
+	Super::Attack();
+
+	if (AttackMontage)
+	{
+		UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+		AnimInst->Montage_Play(AttackMontage, Stat->GetTotalStat().AttackSpeed);
+	}
 }
 
 float ACharacterNPC::GetAIPatrolRange()
@@ -58,6 +75,30 @@ float ACharacterNPC::GetAIAttackRange()
 float ACharacterNPC::GetAITurnSpeed()
 {
 	return 0.0f;
+}
+
+void ACharacterNPC::AttackByAI()
+{
+	Attack();
+	if (OnAttackFinished.IsBound())
+	{
+		// 공격 애니메이션이 끝났을 때 호출될 함수를 델리게이트에 바인딩
+		UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+		FOnMontageEnded EndDelegate;
+		EndDelegate.BindLambda([this](UAnimMontage* Montage, bool bInterrupted)
+			{
+				if (OnAttackFinished.IsBound())
+				{
+					OnAttackFinished.Execute();
+				}
+			});
+		AnimInst->Montage_SetEndDelegate(EndDelegate);
+	}
+}
+
+void ACharacterNPC::SetAttackFinishedDelegate(FAICharacterAttackFinished InOnAttackFinished)
+{
+	OnAttackFinished = InOnAttackFinished;
 }
 
 
