@@ -80,6 +80,8 @@ float ACharacterNPC::GetAITurnSpeed()
 void ACharacterNPC::AttackByAI()
 {
 	Attack();
+	UE_LOG(LogTemp, Warning, TEXT("Attack By AI"));
+
 	if (OnAttackFinished.IsBound())
 	{
 		// 공격 애니메이션이 끝났을 때 호출될 함수를 델리게이트에 바인딩

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Weapon/WeaponBase.h"
+#include "Item/GunData.h"
 #include "Enums/CameraShakeType.h"
 #include "GunWeapon.generated.h"
 

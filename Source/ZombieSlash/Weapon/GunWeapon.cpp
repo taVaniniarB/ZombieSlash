@@ -18,8 +18,6 @@ AGunWeapon::AGunWeapon()
 	bCanFire = true;
 }
 
-
-
 void AGunWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -45,8 +43,11 @@ void AGunWeapon::OnEquip()
 {
 	Super::OnEquip();
 	
-	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
+	// 플레이어 캐릭터의 인벤토리 컴포넌트에서 탄약 변경 델리게이트 바인드
 	Inventory->OnAmmoChanged.AddUObject(this, &AGunWeapon::OnAmmoUpdated);
+
+	// 무기 장착 시 현재 탄약 수와 최대 탄약 수를 HUD에 알림
+	OnAmmoChanged.Broadcast(CurAmmo, GetTotalAmmo());
 }
 
 void AGunWeapon::OnUnequip()

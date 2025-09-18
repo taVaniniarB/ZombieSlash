@@ -35,6 +35,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	FAICharacterAttackFinished OnAttackFinished;
 	OnAttackFinished.BindLambda([&]()
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Attack finished delegate called"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		});
 

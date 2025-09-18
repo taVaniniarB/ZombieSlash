@@ -65,6 +65,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInventoryComponent> Inventory;
 
+	// Weapon Section
+public:
+	class UWeaponSlot* GetWeaponSlot() const { return WeaponSlot; }
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UWeaponSlot> WeaponSlot;
+	int32 WeaponSlotCount = 1;
+
 	// Weapon Interface
 protected:
 	virtual struct FCharacterStat GetWeaponOwnerStat() const override;

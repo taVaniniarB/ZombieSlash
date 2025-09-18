@@ -8,14 +8,13 @@
 
 UWeaponSlot::UWeaponSlot()
 {
-	
+
 }
 
 
 void UWeaponSlot::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 const UWeaponData* UWeaponSlot::GetCurWeaponData(int32 InIndex) const
@@ -27,7 +26,7 @@ void UWeaponSlot::SetInventorySize(int32 InMaxSlotCount)
 {
 	Super::SetInventorySize(InMaxSlotCount);
 
-	WeaponData.SetNum(InMaxSlotCount);
+	WeaponData.SetNumUninitialized(InMaxSlotCount);
 }
 
 void UWeaponSlot::TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent* SrcInventory)
@@ -46,45 +45,46 @@ void UWeaponSlot::TransferSlot(int32 DestIdx, int32 SrcIdx, UInventoryComponent*
 
 void UWeaponSlot::LoadWeaponDataFromItems()
 {
-    UItemManagerSubsystem* ItemManager = GetWorld()->GetGameInstance()->GetSubsystem<UItemManagerSubsystem>();
+	UItemManagerSubsystem* ItemManager = GetWorld()->GetGameInstance()->GetSubsystem<UItemManagerSubsystem>();
 
-    // 멤버 변수로 상태 추적
-    PendingLoadsCount = Items.Num();
-    WeaponData.SetNum(Items.Num());
 
-    if (PendingLoadsCount == 0)
-    {
-        OnUpdatedWeaponSlot.ExecuteIfBound();
-        return;
-    }
+	// 멤버 변수로 상태 추적
+	PendingLoadsCount = Items.Num();
+	WeaponData.SetNumUninitialized(Items.Num());
 
-    // Items 내 모든 무기 데이터 로드
-    for (int Idx = 0; Idx < Items.Num(); ++Idx)
-    {
-        FInventorySlot& Item = Items[Idx];
-        if (!Item.IsValid())
-        {
-            WeaponData[Idx] = nullptr;
-            --PendingLoadsCount;
-            if (PendingLoadsCount == 0)
-            {
-                OnUpdatedWeaponSlot.ExecuteIfBound();
-            }
-            continue;
-        }
+	if (PendingLoadsCount == 0)
+	{
+		OnUpdatedWeaponSlot.ExecuteIfBound();
+		return;
+	}
 
-        ItemManager->LoadItemDataAsync(Item.ItemID, [this, Idx](UItemData* ItemData)
-            {
-                UWeaponData* Weapon = Cast<UWeaponData>(ItemData);
-                WeaponData[Idx] = Weapon;
+	// Items 내 모든 무기 데이터 로드
+	for (int Idx = 0; Idx < Items.Num(); ++Idx)
+	{
+		FInventorySlot& Item = Items[Idx];
+		if (!Item.IsValid())
+		{
+			WeaponData[Idx] = nullptr;
+			--PendingLoadsCount;
+			if (PendingLoadsCount == 0)
+			{
+				OnUpdatedWeaponSlot.ExecuteIfBound();
+			}
+			continue;
+		}
 
-                --PendingLoadsCount;
-                if (PendingLoadsCount == 0)
-                {
-                    OnUpdatedWeaponSlot.ExecuteIfBound();
-                }
-            });
-    }
+		ItemManager->LoadItemDataAsync(Item.ItemID, [this, Idx](UItemData* ItemData)
+			{
+				UWeaponData* Weapon = Cast<UWeaponData>(ItemData);
+				WeaponData[Idx] = Weapon;
+
+				--PendingLoadsCount;
+				if (PendingLoadsCount == 0)
+				{
+					OnUpdatedWeaponSlot.ExecuteIfBound();
+				}
+			});
+	}
 }
 
 void UWeaponSlot::RegistWeaponData(UItemData* ItemData, int32 Idx)
@@ -95,5 +95,5 @@ void UWeaponSlot::RegistWeaponData(UItemData* ItemData, int32 Idx)
 
 void UWeaponSlot::UpdateInventory()
 {
-    bEquippedWeaponChanged = true;
+	bEquippedWeaponChanged = true;
 }

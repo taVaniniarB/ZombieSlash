@@ -8,24 +8,9 @@
 #include "Interface/CharacterInteractInterface.h"
 #include "Interface/CharacterHUDInterface.h"
 #include "Enums/WeaponType.h"
+#include "Enums/WeaponState.h"
 #include "CharacterPlayer.generated.h"
 
-UENUM(BlueprintType)
-enum class EGunState : uint8
-{
-	Ready = 0,
-	Aim,
-	Reload
-};
-
-UENUM(BlueprintType)
-enum class EMeleeState : uint8
-{
-	Default = 0,
-	Parry,
-};
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedSignature, EWeaponType, WeaponType);
 /**
  *
  */
@@ -37,9 +22,6 @@ class ZOMBIESLASH_API ACharacterPlayer : public ACharacterBase, public ICharacte
 public:
 	ACharacterPlayer();
 	
-	UPROPERTY(BlueprintAssignable, Category = "Weapon")
-	FOnWeaponEquippedSignature OnWeaponEquipped;
-
 	virtual void Tick(float DeltaTime) override;
 
 	virtual bool PickupItem(FPrimaryAssetId ItemID, EItemType ItemType, int32 Quantity) override;
@@ -47,14 +29,14 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	void InitializeWeaponsFromSlot();
-
 	virtual void SetDead() override;
 
 public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	uint8 GetIsAiming() const { return bIsAiming; }
+	uint8 IsZooming() const { return bIsZooming; }
+	uint8 IsAiming() const { return bIsAiming; }
+	uint8 IsReloading() const { return bIsReloading; }
 
 	// Camera Section
 protected:
@@ -113,6 +95,11 @@ protected:
 	void UseQuickSlotX();
 
 	// Gun
+public:
+	void SetGunState(EGunState GunState, uint8 InIsZooming, bool PlayMontage);
+	// Zoom, 총의 공격 입력이 있을 때 호출된다
+	void ResetExitAimTimer();
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputMappingContext> GunIMC;
@@ -125,14 +112,14 @@ protected:
 	EGunState CurGunState = EGunState::Ready;
 
 	EGunState GetGunState() { return CurGunState; }
-	void SetGunState(EGunState GunState, uint8 InIsZooming, bool PlayMontage);
-
+	
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
 	uint8 bIsZooming : 1;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
 	uint8 bIsAiming : 1;
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Gun)
 	uint8 bIsReloading : 1;
+
 	
 	FTimerHandle ExitAimTimerHandle;
 	float ExitAimTime = 3.0f;
@@ -143,8 +130,6 @@ protected:
 	void CameraAimZoom();
 	void ExitCameraAimZoom();
 
-	// Zoom, 총의 공격 입력이 있을 때 호출된다
-	void ResetExitAimTimer();
 	void ExitAimState();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = Gun, Meta = (DisplayName = "OnGunStateChangedCpp"))
@@ -161,8 +146,10 @@ protected:
 	TObjectPtr<class UInputAction> ParryAction;
 	void Parry();
 
-protected:
+public:
 	void UpdateWeaponIMC(EWeaponType NewWeaponType);
+
+protected:
 	void ActiveCombatAction(bool bActive);
 
 	// Interaction Section
@@ -173,33 +160,21 @@ protected:
 	// 파사드
 	void AddOverlappingInteractable(AActor* InInteractable);
 	void RemoveOverlappingInteractable(AActor* InInteractable);
-	
-	/*
-	void UpdateClosestItem();
-	TArray<class AItemPickup*> OverlappingItems;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Item)
-	TObjectPtr<AItemPickup> ClosestItem;*/
 
 	// Inventory Section
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UQuickSlot> QuickSlot;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, Meta = (AllowPriaveAccess = "true"))
-	TObjectPtr<class UWeaponSlot> WeaponSlot;
-	int32 WeaponSlotCount = 3;
-	
+
 	// Weapon Section
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	TArray<TObjectPtr<class AWeaponBase>> Weapons;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
-	int32 CurWeaponIndex = 0;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, Meta = (AllowPriaveAccess = "true"))
+	TObjectPtr<class UPlayerWeaponManagerComponent> WeaponManager;
 
 	UFUNCTION()
 	void SwitchWeapon(const FInputActionInstance& Value);
 
-	void EquipWeaponByIndex(int32 Index);
+public:
 	void HandleAmmoChanged(int32 NewAmmo, int32 MaxAmmo);
 	
 	// HUD Section

@@ -12,32 +12,24 @@
 #include "Item/ItemPickup.h"
 #include "Inventory/InventoryComponent.h"
 #include "Item/ItemData.h"
-#include "Item/WeaponData.h"
-#include "Item/GunData.h"
-#include "Weapon/WeaponBase.h"
-#include "Weapon/GunWeapon.h"
-#include "Weapon/MeleeWeapon.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "UI/ZSHUDWidget.h"
 #include "Interface/WeaponAnimInterface.h"
 #include "Inventory/QuickSlot.h"
-#include "Inventory/WeaponSlot.h"
 #include "Player/ZSPlayerController.h"
 #include "Camera/CameraControlComponent.h"
 #include "Interaction/InteractionComponent.h"
+#include "Weapon/PlayerWeaponManagerComponent.h"
 
 ACharacterPlayer::ACharacterPlayer()
 {
 	SetCharacterID(TEXT("Player_Default"));
-	
-	Weapons.SetNum(WeaponSlotCount);
 
 	// Inventory
 	QuickSlot = CreateDefaultSubobject<UQuickSlot>(TEXT("QuickSlot"));
 	QuickSlot->SetInventorySize(2);
-	WeaponSlot = CreateDefaultSubobject<UWeaponSlot>(TEXT("Weaponslot"));
-	WeaponSlot->SetInventorySize(WeaponSlotCount);
-	WeaponSlot->OnUpdatedWeaponSlot.BindUObject(this, &ACharacterPlayer::InitializeWeaponsFromSlot);
+
+	WeaponManager = CreateDefaultSubobject<UPlayerWeaponManagerComponent>(TEXT("WeaponManager"));
 
 	// Interaction
 	Interaction = CreateDefaultSubobject<UInteractionComponent>(TEXT("Interaction"));
@@ -140,13 +132,12 @@ ACharacterPlayer::ACharacterPlayer()
 void ACharacterPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//UpdateClosestItem();
 }
 
 void ACharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
 	// Input Setting
 	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
 	{
@@ -158,56 +149,6 @@ void ACharacterPlayer::BeginPlay()
 		}
 		EnableInput(PlayerController);
 	}
-
-	// Weapon Setting
-	WeaponSlot->LoadWeaponDataFromItems(); // 아이템 로드 및 WeaponData 배열 세팅
-}
-
-void ACharacterPlayer::InitializeWeaponsFromSlot()
-{
-	// WeaponSlot 내 WeaponData를 참조하여 무기 액터를 생성하고, 이를 Weapons 배열에 보관한다.
-	for (int32 i = 0; i < WeaponSlotCount; ++i)
-	{
-		UWeaponData* NewWeaponData = WeaponSlot->WeaponData[i];
-		if (!NewWeaponData)
-		{
-			Weapons[i]->OnUnequip();
-			Weapons[i] = nullptr;
-			continue;
-		}
-
-		// i 슬롯 내에 무기 인스턴스가 이미 존재하고, 무기 데이터가 동일하면 넘어간다
-		if (Weapons.IsValidIndex(i) && Weapons[i])
-		{
-			if (Weapons[i]->GetWeaponData() == NewWeaponData)
-				continue;
-
-			// 무기 데이터가 다르다면 기존 무기를 제거한다
-			Weapons[i]->OnUnequip();
-			Weapons[i] = nullptr; // 참조 제거
-		}
-
-		// 새 무기 액터 생성
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-
-		AWeaponBase* WeaponInst = GetWorld()->SpawnActor<AWeaponBase>(NewWeaponData->WeaponActorClass, SpawnParams);
-		if (!WeaponInst)
-		{
-			UE_LOG(LogTemp, Error, TEXT("Weapon spawn failed at slot %d"), i);
-			continue;
-		}
-
-		WeaponInst->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponInst->GetSocketName());
-		WeaponInst->InitializeWeapon(NewWeaponData, this);
-		WeaponInst->OnUnequip(); // 스폰된 무기를 Invisible하게 만들 목적
-
-		Weapons[i] = WeaponInst;
-	}
-
-	EquipWeaponByIndex(CurWeaponIndex);
-
-	WeaponSlot->bEquippedWeaponChanged = false;
 }
 
 void ACharacterPlayer::SetDead()
@@ -309,28 +250,11 @@ void ACharacterPlayer::Attack()
 {
 	Super::Attack();
 
-	if (!Weapons[CurWeaponIndex]->CanAttack()) return;
-
-	if (EWeaponType::Gun == Weapons[CurWeaponIndex]->GetWeaponType())
-	{
-		EnterAimState();
-
-		IWeaponAnimInterface* Anim = Cast<IWeaponAnimInterface>(GetMesh()->GetAnimInstance());
-		Anim->Shoot();
-	}
-
-	Weapons[CurWeaponIndex]->StartAttack();
+	WeaponManager->Attack();
 }
 
 bool ACharacterPlayer::PickupItem(FPrimaryAssetId ItemID, EItemType ItemType, int32 Quantity)
 {
-	/*if (!ClosestItem || !ClosestItem->ItemData)
-	{
-		return;
-	}
-
-	FPrimaryAssetId ID = ClosestItem->ItemData->GetPrimaryAssetId();*/
-
 	bool QuickSlotSuccess = false;
 	if (ItemType == EItemType::Usable)
 	{
@@ -345,9 +269,6 @@ bool ACharacterPlayer::PickupItem(FPrimaryAssetId ItemID, EItemType ItemType, in
 
 	if (QuickSlotSuccess || MainInventorySuccess)
 	{
-		//ClosestItem->Destroy();
-		//OverlappingItems.Remove(ClosestItem);
-		//Interaction->RemoveOverlappingInteractable()
 		return true;
 	}
 	else
@@ -405,7 +326,6 @@ void ACharacterPlayer::EnterAimState()
 void ACharacterPlayer::CameraAimZoom()
 {
 	SetGunState(EGunState::Aim, true, true);
-
 	ResetExitAimTimer();
 }
 
@@ -437,16 +357,10 @@ void ACharacterPlayer::ExitAimState()
 
 void ACharacterPlayer::Reload()
 {
-	if (EWeaponType::Gun != Weapons[CurWeaponIndex]->GetWeaponType()) return;
-
-	SetGunState(EGunState::Reload, bIsZooming, false);
-
-	AGunWeapon* Gun = Cast<AGunWeapon>(Weapons[CurWeaponIndex]);
-
-	if (Gun->CanReload() && !GetMesh()->GetAnimInstance()->IsAnyMontagePlaying())
+	if (WeaponManager->Reload())
 	{
 		ActiveCombatAction(false);
-		Gun->Reload();
+		SetGunState(EGunState::Reload, bIsZooming, false);
 	}
 }
 
@@ -459,60 +373,12 @@ void ACharacterPlayer::EndReload()
 
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 {
-	const float ScrollValue = Value.GetValue().Get<float>();
-	if (FMath::IsNearlyZero(ScrollValue)) return;
-	if (bIsZooming || IsPlayingRootMotion() || !WeaponSlot) return;
-
-	int32 TotalSlots = WeaponSlot->MaxSlotCount;
-	if (TotalSlots == 0) return;
-
-	int32 Direction = ScrollValue > 0 ? 1 : -1;
-
-	// 다음 유효한 무기를 찾고 현재 무기를 가리킬 인덱스를 세팅한다
-	int32 NewIndex = CurWeaponIndex;
-	for (int32 i = 0; i < TotalSlots; ++i)
-	{
-		NewIndex = (NewIndex + Direction + TotalSlots) % TotalSlots;
-
-		if (Weapons[NewIndex])
-		{
-			break;
-		}
-	}
-
-	AWeaponBase* PrevWeapon = Weapons[CurWeaponIndex];
-	PrevWeapon->OnUnequip(); // 이전 무기 장착 해제
-
-	EquipWeaponByIndex(NewIndex);
-
-	CurWeaponIndex = NewIndex;
+	WeaponManager->SwitchWeapon(Value);
 }
 
-void ACharacterPlayer::EquipWeaponByIndex(int32 Index)
-{
-	SetGunState(EGunState::Ready, false, false);
-	AWeaponBase* CurWeapon = Weapons[Index];
-	Stat->SetModifierStat(WeaponSlot->WeaponData[Index]->ModifierStat);
-	UpdateWeaponIMC(CurWeapon->GetWeaponType());
-
-	if (CurWeapon->GetWeaponType() == EWeaponType::Gun)
-	{
-		AGunWeapon* GunWeapon = Cast<AGunWeapon>(CurWeapon);
-		if (GunWeapon)
-		{
-			// HUD 업데이트를 위한 델리게이트 바인딩
-			GunWeapon->OnAmmoChanged.AddUObject(this, &ACharacterPlayer::HandleAmmoChanged);
-		}
-	}
-
-	CurWeapon->OnEquip();
-
-	OnWeaponEquipped.Broadcast(CurWeapon->GetWeaponType());
-}
 
 void ACharacterPlayer::HandleAmmoChanged(int32 NewAmmo, int32 MaxAmmo)
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleAmmoChanged Called"));
 	// 플레이어 컨트롤러를 통해 HUD에 알림
 	AZSPlayerController* PC = Cast<AZSPlayerController>(GetController());
 	if (PC)
@@ -533,10 +399,10 @@ void ACharacterPlayer::HandleAmmoChanged(int32 NewAmmo, int32 MaxAmmo)
 
 void ACharacterPlayer::Parry()
 {
-	if (EWeaponType::Melee == Weapons[CurWeaponIndex]->GetWeaponType())
-	{
-		//SetMeleeState(EMeleeState::Parry);
-	}
+	//if (EWeaponType::Melee == Weapons[CurWeaponIndex]->GetWeaponType())
+	//{
+	//	SetMeleeState(EMeleeState::Parry);
+	//}
 }
 
 void ACharacterPlayer::UpdateWeaponIMC(EWeaponType NewWeaponType)
@@ -566,6 +432,7 @@ void ACharacterPlayer::UpdateWeaponIMC(EWeaponType NewWeaponType)
 			case EWeaponType::Gun:
 				if (GunIMC)
 				{
+					UE_LOG(LogTemp, Warning, TEXT("UpdateWeaponIMC Called, GunIMC"));
 					Subsystem->AddMappingContext(GunIMC, 1);
 				}
 				break;
@@ -623,34 +490,13 @@ AActor* ACharacterPlayer::GetClosestInteractable()
 void ACharacterPlayer::AddOverlappingInteractable(AActor* InInteractable)
 {
 	Interaction->AddOverlappingInteractable(InInteractable);
-	/*OverlappingItems.Add(InItemData);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());*/
 }
 
 void ACharacterPlayer::RemoveOverlappingInteractable(AActor* InInteractable)
 {
 	Interaction->RemoveOverlappingInteractable(InInteractable);
-	/*OverlappingItems.Remove(InItemData);
-	UE_LOG(LogTemp, Warning, TEXT("Overlapping Items %d"), OverlappingItems.Num());*/
 }
 
-//void ACharacterPlayer::UpdateClosestItem()
-//{
-//	ClosestItem = nullptr;
-//	float ClosestDist = FLT_MAX;
-//
-//	for (AItemPickup* Item : OverlappingItems)
-//	{
-//		if (!IsValid(Item)) continue;
-//
-//		float Dist = FVector::Dist(GetActorLocation(), Item->GetActorLocation());
-//		if (Dist < ClosestDist)
-//		{
-//			ClosestDist = Dist;
-//			ClosestItem = Item;
-//		}
-//	}
-//}
 
 void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
 {
@@ -666,9 +512,12 @@ void ACharacterPlayer::SetupHUDWidget(UZSHUDWidget* InHUDWidget)
 
 void ACharacterPlayer::BindWeaponEquippedEvent(UZSHUDWidget* InHUDWidget)
 {
+	check(WeaponManager);
+	check(InHUDWidget);
+
 	if (InHUDWidget)
 	{
-		OnWeaponEquipped.AddDynamic(InHUDWidget, &UZSHUDWidget::HandleWeaponEquipped);
+		WeaponManager->OnWeaponEquipped.AddDynamic(InHUDWidget, &UZSHUDWidget::HandleWeaponEquipped);
 	}
 }
 

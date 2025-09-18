@@ -18,6 +18,7 @@
 #include "ItemEffect/EffectManager.h"
 #include "Enums/CameraShakeType.h"
 #include "Subsystem/GameplayEventSubsystem.h"
+#include "Inventory/WeaponSlot.h"
 
 
 // Sets default values
@@ -53,6 +54,9 @@ ACharacterBase::ACharacterBase()
 	// Inventory
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	Inventory->SetInventorySize(20);
+
+	// Weapon
+	WeaponSlot = CreateDefaultSubobject<UWeaponSlot>(TEXT("Weaponslot"));
 }
 
 void ACharacterBase::PostInitializeComponents()
@@ -157,12 +161,12 @@ void ACharacterBase::AttackHitCheck()
 	}
 
 #if ENABLE_DRAW_DEBUG
-	/*FVector CapsuleOrigin = Start + 0.5 * (End - Start);
+	FVector CapsuleOrigin = Start + 0.5 * (End - Start);
 	float CapsuleHalfHeight = (AttackRange * 0.5) + AttackRadius;
 	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
 		FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor,
-		false, 3.f);*/
+		false, 3.f);
 #endif
 }
 
