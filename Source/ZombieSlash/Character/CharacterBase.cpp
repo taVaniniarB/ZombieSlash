@@ -180,13 +180,9 @@ void ACharacterBase::SetDead()
 
 void ACharacterBase::PlayDeadAnimation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ACharacterBase::PlayDeadAnimation()"));
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
-	if (AnimInst->GetCurrentActiveMontage())
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *(AnimInst->GetCurrentActiveMontage()->GetName()));
 	AnimInst->StopAllMontages(0.f);
 	AnimInst->Montage_Play(DeadMontage, 1.0f);
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *(AnimInst->GetCurrentActiveMontage()->GetName()));
 }
 
 // 스탯의 델리게이트에 HP바 함수 바인딩 및 초기 세팅

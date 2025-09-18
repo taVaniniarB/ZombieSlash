@@ -53,9 +53,11 @@ public:
     const TArray<AWeaponBase*>& GetWeapons() const { return Weapons; }
 
 protected:
-    // 무기 배열 및 현재 무기 인덱스
+    // 무기 액터 배열
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	TArray<TObjectPtr<AWeaponBase>> Weapons;
+
+    // 현재 무기 인덱스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Weapon)
 	int32 CurWeaponIndex = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

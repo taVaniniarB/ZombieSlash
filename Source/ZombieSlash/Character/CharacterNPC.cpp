@@ -31,17 +31,17 @@ void ACharacterNPC::SetDead()
 	{
 		ZSAIController->StopAI();
 	}
-	FTimerHandle DeadTimerHandle;
-
+	
+	//FTimerHandle DeadTimerHandle;
 	// 멤버 함수 만들어서 넣어줄 수 있지만, 액터 없애는 함수를 굳이 만드는 건 번거롭다.
 	// 따라서 간편하게 람다 함수를 사용한다.
 	// 타이머 델리게이트 구조체에 부착시켜놓고, 이것을 넘긴다.
 	// 저 본문을 가진 람다 함수와 연결된 타이머 델리게이트를 즉석에서 만들어서 연결시켜준다.
-	GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda(
+	/*GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda(
 		[&]()
 		{
 			Destroy();
-		}), 5.f, false);
+		}), 5.f, false);*/
 
 	HPBar->SetHiddenInGame(true);
 }

@@ -19,7 +19,6 @@ class ZOMBIESLASH_API ACharacterBase : public ACharacter,
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	ACharacterBase();
 
 protected:

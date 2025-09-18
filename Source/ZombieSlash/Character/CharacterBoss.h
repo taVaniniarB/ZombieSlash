@@ -17,7 +17,14 @@ class ZOMBIESLASH_API ACharacterBoss : public ACharacterNPC
 public:
 	ACharacterBoss();
 
+	virtual void OnBossDead();
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UWeaponManagerComponent> WeaponManager;
+
+	virtual void SetDead() override;
+	
 };

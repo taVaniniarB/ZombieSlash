@@ -28,6 +28,39 @@ AItemPickup::AItemPickup()
 	Quantity = 1;
 }
 
+AItemPickup* AItemPickup::CreatePickup(UWorld* World, const FVector& SpawnLocation, const FRotator& SpawnRotation, FPrimaryAssetId InItemID, int32 InQuantity, UStaticMesh* PickupMesh)
+{
+	if (!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World is null in CreatePickup"));
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	// Pickup 액터 스폰
+	AItemPickup* NewPickup = World->SpawnActor<AItemPickup>(AItemPickup::StaticClass(),
+		SpawnLocation, SpawnRotation, SpawnParams);
+
+	if (NewPickup)
+	{
+		// 아이템 정보 설정
+		NewPickup->ItemID = InItemID;
+		NewPickup->Quantity = InQuantity;
+
+		if (PickupMesh && NewPickup->Mesh)
+		{
+			NewPickup->Mesh->SetStaticMesh(PickupMesh);
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Pickup created successfully at location: %s"),
+			*SpawnLocation.ToString());
+	}
+
+	return NewPickup;
+}
+
 void AItemPickup::Interact_Implementation(AActor* Interactor)
 {
 	ICharacterInteractInterface* Pawn = Cast<ICharacterInteractInterface>(Interactor);

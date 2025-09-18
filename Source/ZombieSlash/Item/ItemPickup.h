@@ -17,6 +17,12 @@ public:
 	// Sets default values for this actor's properties
 	AItemPickup();
 
+	// Pickup 동적 생성을 위한 정적 함수
+	UFUNCTION(BlueprintCallable, Category = "Pickup")
+	static AItemPickup* CreatePickup(UWorld* World, const FVector& SpawnLocation,
+		const FRotator& SpawnRotation, FPrimaryAssetId InItemID,
+		int32 InQuantity = 1, UStaticMesh* PickupMesh = nullptr);
+
 public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UStaticMeshComponent> Mesh;
