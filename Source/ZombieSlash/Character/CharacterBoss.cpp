@@ -29,23 +29,25 @@ void ACharacterBoss::SetDead()
 void ACharacterBoss::OnBossDead()
 {
 	UE_LOG(LogTemp, Warning, TEXT("BossDead"));
-	// 무기 떼어내기
-	// 죽는 애니메이션이 끝나는 시점에 Attach를 뗴어내고, 객체를 삭제하고, 위치, 각도 동일한 Pickup 만들자
+
+	// 죽는 애니메이션이 끝나는 시점에
+	// 1. 보스가 들고 있던 무기와 위치, 각도가 동일한 Pickup을 만든다
+	// 2. 무기 객체를 삭제한다
 
 	AWeaponBase* Weapon = WeaponManager->GetCurrentWeapon();
+	
+	UStaticMeshComponent* MeshComponent = Weapon->FindComponentByClass<UStaticMeshComponent>();
+	if (!MeshComponent) return;
 
-	// 무기 소켓 또는 메시의 위치 가져오기
-	FVector WeaponLocation;
-	FRotator WeaponRotation;
+	FVector WeaponLocation = MeshComponent->GetComponentLocation();
+	FRotator WeaponRotation = MeshComponent->GetComponentRotation();
+
 	UStaticMesh* WeaponMesh = nullptr;
 
-	UStaticMeshComponent* MeshComponent = Weapon->FindComponentByClass<UStaticMeshComponent>();
-	if (MeshComponent) {
-		WeaponMesh = MeshComponent->GetStaticMesh();
-	}
+	WeaponMesh = MeshComponent->GetStaticMesh();
 
+	// 소켓 위치 사용
 	FName SocketName = Weapon->GetSocketName();
-	// 소켓이 있는 경우 소켓 위치 사용
 	if (GetMesh()->DoesSocketExist(SocketName))
 	{
 		WeaponLocation = GetMesh()->GetSocketLocation(SocketName);
@@ -61,8 +63,20 @@ void ACharacterBoss::OnBossDead()
 		1, // 수량
 		WeaponMesh
 	);
-	if (WeaponPickup)
+
+	// 무기 BP의 오프셋 반영
+	UStaticMeshComponent* PickupMesh = WeaponPickup->FindComponentByClass<UStaticMeshComponent>();
+	if (PickupMesh)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Boss weapon pickup created successfully"));
+		// 원래 무기 메시 오프셋을 복사
+		UStaticMeshComponent* WeaponMeshComp = Weapon->FindComponentByClass<UStaticMeshComponent>();
+		if (WeaponMeshComp)
+		{
+			PickupMesh->SetRelativeTransform(WeaponMeshComp->GetRelativeTransform());
+		}
 	}
+
+	// 무기 삭제
+	Weapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Weapon->Destroy();
 }

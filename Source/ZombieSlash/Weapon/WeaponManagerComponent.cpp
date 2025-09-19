@@ -158,7 +158,6 @@ EWeaponType UWeaponManagerComponent::GetCurrentWeaponType() const
 	return CurrentWeapon->GetWeaponType();
 }
 
-
 void UWeaponManagerComponent::AttachWeaponToOwner(AWeaponBase* Weapon)
 {
 	if (!Weapon || !OwnerCharacter)
