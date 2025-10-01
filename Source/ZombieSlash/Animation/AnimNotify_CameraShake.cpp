@@ -9,9 +9,13 @@ void UAnimNotify_CameraShake::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 	
-	if (MeshComp)
+	if (MeshComp && MeshComp->GetWorld())
 	{
-		UGameplayEventSubsystem::Get(MeshComp->GetWorld())->OnCameraShakeRequested.Broadcast(ShakeType, Scale);
+		if (auto* Subsystem = UGameplayEventSubsystem::Get(MeshComp->GetWorld()))
+		{
+			Subsystem->OnCameraShakeRequested.Broadcast(ShakeType, Scale);
+		}
+		//UGameplayEventSubsystem::Get(MeshComp->GetWorld())->OnCameraShakeRequested.Broadcast(ShakeType, Scale);
 
 		// Interface 사용 시 코드
 		/*ICameraShakeInterface* Pawn = Cast<ICameraShakeInterface>(MeshComp->GetOwner());

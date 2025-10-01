@@ -7,11 +7,18 @@
 #include "Weapon/WeaponBase.h"
 #include "Item/WeaponData.h"
 #include "Item/ItemPickup.h"
+#include "Kismet/GameplayStatics.h"
+#include "MotionWarpingComponent.h"
+#include "AI/BossAIController.h"
 
 ACharacterBoss::ACharacterBoss()
 {
 	SetCharacterID(TEXT("Enemy_Boss"));
 	WeaponManager = CreateDefaultSubobject<UWeaponManagerComponent>(TEXT("WeaponManager"));
+	MotionWarpingComp = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+	
+	DetectAngle = 70.0f;
+	DetectRange = 500.0f;
 }
 
 void ACharacterBoss::BeginPlay()
@@ -26,6 +33,33 @@ void ACharacterBoss::SetDead()
 	UE_LOG(LogTemp, Warning, TEXT("Boss::SetDead"));
 }
 
+void ACharacterBoss::AttackByAI()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ACharacterBoss::AttackByAI"));
+	UpdateWarpTarget();
+	Super::AttackByAI();
+}
+
+void ACharacterBoss::UpdateWarpTarget()
+{
+	if (!MotionWarpingComp) return;
+
+	ABossAIController* BossController = Cast<ABossAIController>(GetController());
+	if (!BossController) return;
+	UObject* Target = BossController->GetTarget();
+	if (!Target) return;
+	AActor* TargetPawn = Cast<AActor>(Target);
+	if (!TargetPawn) return;
+
+	FVector TargetLocation = TargetPawn->GetActorLocation();
+	FRotator TargetRotation = FRotator(0.0f, (TargetPawn->GetActorLocation() - GetActorLocation()).Rotation().Yaw, 0.0f);
+	MotionWarpingComp->AddOrUpdateWarpTargetFromLocationAndRotation(
+		FName("AttackPoint"),
+		TargetLocation,
+		TargetRotation
+	);
+}
+
 void ACharacterBoss::OnBossDead()
 {
 	UE_LOG(LogTemp, Warning, TEXT("BossDead"));
@@ -35,7 +69,7 @@ void ACharacterBoss::OnBossDead()
 	// 2. 무기 객체를 삭제한다
 
 	AWeaponBase* Weapon = WeaponManager->GetCurrentWeapon();
-	
+
 	UStaticMeshComponent* MeshComponent = Weapon->FindComponentByClass<UStaticMeshComponent>();
 	if (!MeshComponent) return;
 

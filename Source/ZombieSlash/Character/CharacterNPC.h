@@ -28,13 +28,23 @@ protected:
 	// AI Interface
 	virtual float GetAIPatrolRange() override;
 	virtual float GetAIDetectRange() override;
+	virtual float GetAIDetectAngle() override;
 	virtual float GetAIAttackRange() override;
 	virtual float GetAITurnSpeed() override;
+	virtual void SetTurnSpeed(float InTurnSpeed) override;
 
 	virtual void AttackByAI() override;
 	virtual void SetAttackFinishedDelegate(FAICharacterAttackFinished InOnAttackFinished) override;
 
 	FAICharacterAttackFinished OnAttackFinished;
+
+
+protected:
+	UPROPERTY(EditAnywhere)
+	float DetectAngle;
+	UPROPERTY(EditAnywhere)
+	float DetectRange;
+
 
 	// ¸Ó¸® À§¿¡ ¶ß´Â UI À§Á¬
 protected:

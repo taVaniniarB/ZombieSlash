@@ -5,6 +5,7 @@
 #include "UI/ZSWidgetComponent.h"
 #include "CharacterStat/CharacterStatComponent.h"
 #include "AI/ZSAIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 ACharacterNPC::ACharacterNPC()
 {
@@ -20,6 +21,7 @@ ACharacterNPC::ACharacterNPC()
 		HPBar->SetDrawSize(FVector2D(100.f, 8.f));
 		HPBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	DetectRange = 400.0f;
 }
 
 void ACharacterNPC::SetDead()
@@ -64,7 +66,12 @@ float ACharacterNPC::GetAIPatrolRange()
 
 float ACharacterNPC::GetAIDetectRange()
 {
-	return 400.f;
+	return DetectRange;
+}
+
+float ACharacterNPC::GetAIDetectAngle()
+{
+	return DetectAngle;
 }
 
 float ACharacterNPC::GetAIAttackRange()
@@ -74,7 +81,12 @@ float ACharacterNPC::GetAIAttackRange()
 
 float ACharacterNPC::GetAITurnSpeed()
 {
-	return 0.0f;
+	return GetCharacterMovement()->RotationRate.Yaw;
+}
+
+void ACharacterNPC::SetTurnSpeed(float InTurnSpeed)
+{
+	GetCharacterMovement()->RotationRate.Yaw = InTurnSpeed;
 }
 
 void ACharacterNPC::AttackByAI()

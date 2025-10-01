@@ -6,6 +6,7 @@
 #include "Character/CharacterNPC.h"
 #include "CharacterBoss.generated.h"
 
+
 /**
  * 
  */
@@ -25,6 +26,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UWeaponManagerComponent> WeaponManager;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Motion Warping")
+	TObjectPtr<class UMotionWarpingComponent> MotionWarpingComp;
+
 	virtual void SetDead() override;
-	
+	virtual void AttackByAI() override;
+
+	void UpdateWarpTarget();
 };

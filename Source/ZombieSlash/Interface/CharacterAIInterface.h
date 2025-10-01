@@ -26,8 +26,10 @@ class ZOMBIESLASH_API ICharacterAIInterface
 public:
 	virtual float GetAIPatrolRange() = 0;
 	virtual float GetAIDetectRange() = 0;
+	virtual float GetAIDetectAngle() = 0;
 	virtual float GetAIAttackRange() = 0;
 	virtual float GetAITurnSpeed() = 0;
+	virtual void SetTurnSpeed(float InTurnSpeed) = 0;
 	virtual void AttackByAI() = 0;
 	virtual void SetAttackFinishedDelegate(FAICharacterAttackFinished InOnAttackFinished) = 0;
 };
