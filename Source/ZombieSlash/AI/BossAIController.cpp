@@ -145,7 +145,7 @@ void ABossAIController::DrawDebugVisualization()
         DrawDebugLine(GetWorld(), DetectionOrigin, ConePoints.Last(), FColor::Green, false, -1, 0, 2.0f);
     }
 
-    // 이론적 최대 범위 (빨간색)
+    // 최대 감지 범위 (빨간색)
     float HalfAngle = GetDetectAngle() * 0.5f;
     FVector PawnForward = GetPawn()->GetActorForwardVector();
     FVector LeftBoundary = PawnForward.RotateAngleAxis(-HalfAngle, FVector::UpVector) * GetDetectRange();
@@ -154,16 +154,14 @@ void ABossAIController::DrawDebugVisualization()
     DrawDebugLine(GetWorld(), DetectionOrigin, DetectionOrigin + LeftBoundary, FColor::Red, false, -1, 0, 1.0f);
     DrawDebugLine(GetWorld(), DetectionOrigin, DetectionOrigin + RightBoundary, FColor::Red, false, -1, 0, 1.0f);
 
-    // 감지 원점
-    DrawDebugSphere(GetWorld(), DetectionOrigin, 20.0f, 8, FColor::Blue, false, -1, 0, 2.0f);
 
     // 플레이어 감지 상태 표시
-    if (CachedPlayer && IsPlayerInDetectionCone(CachedPlayer))
+    /*if (CachedPlayer && IsPlayerInDetectionCone(CachedPlayer))
     {
         FVector PlayerLocation = CachedPlayer->GetActorLocation();
         DrawDebugLine(GetWorld(), DetectionOrigin, PlayerLocation, FColor::Yellow, false, -1, 0, 3.0f);
         DrawDebugSphere(GetWorld(), PlayerLocation, 50.0f, 8, FColor::Yellow, false, -1, 0, 2.0f);
-    }
+    }*/
 }
 
 bool ABossAIController::LineTraceToTarget(const FVector& Start, const FVector& End, AActor* TargetActor)
@@ -190,9 +188,6 @@ FVector ABossAIController::GetDetectionOrigin()
 {
     if (APawn* ControlledPawn = GetPawn())
     {
-        // 캐릭터의 눈 높이 정도로 조정 (필요시 별도 컴포넌트 사용)
-        //FVector PawnLocation = ControlledPawn->GetActorLocation();
-        //return PawnLocation + FVector(0, 0, 100.0f); // 눈 높이로 조정
         return ControlledPawn->GetActorLocation();
     }
     return FVector::ZeroVector;

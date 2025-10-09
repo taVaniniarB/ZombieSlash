@@ -30,8 +30,6 @@ void UWeaponManagerComponent::BeginPlay()
 	WeaponSlot->SetInventorySize(WeaponSlotCount);
 	WeaponSlot->OnUpdatedWeaponSlot.BindUObject(this, &UWeaponManagerComponent::InitializeWeapons);
 	WeaponSlot->LoadWeaponDataFromItems();
-
-	//InitializeWeapons();
 }
 
 void UWeaponManagerComponent::InitializeWeapons()
