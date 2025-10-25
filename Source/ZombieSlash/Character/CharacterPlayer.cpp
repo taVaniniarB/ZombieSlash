@@ -427,7 +427,7 @@ void ACharacterPlayer::UpdateWeaponIMC(EWeaponType NewWeaponType)
 
 			if (!Subsystem) return;
 
-			// 모두 제거 (중복 제거 방지)
+			// 기존 IMC 모두 제거
 			if (GunIMC)
 			{
 				Subsystem->RemoveMappingContext(GunIMC);
@@ -473,14 +473,15 @@ void ACharacterPlayer::ActiveCombatAction(bool bActive)
 			if (!Subsystem) return;
 			if (!CombatIMC)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("CombatIMC is Null"))
+				UE_LOG(LogTemp, Warning, TEXT("CombatIMC is Null"));
+				return;
 			}
 
 			if (bActive)
 			{
 				Subsystem->AddMappingContext(CombatIMC, 1);
 			}
-			if (!bActive)
+			else
 			{
 				Subsystem->RemoveMappingContext(CombatIMC);
 			}
@@ -525,10 +526,7 @@ void ACharacterPlayer::BindWeaponEquippedEvent(UZSHUDWidget* InHUDWidget)
 	check(WeaponManager);
 	check(InHUDWidget);
 
-	if (InHUDWidget)
-	{
-		WeaponManager->OnWeaponEquipped.AddDynamic(InHUDWidget, &UZSHUDWidget::HandleWeaponEquipped);
-	}
+	WeaponManager->OnWeaponEquipped.AddDynamic(InHUDWidget, &UZSHUDWidget::HandleWeaponEquipped);
 }
 
 AActor* ACharacterPlayer::GetTargetActor()
