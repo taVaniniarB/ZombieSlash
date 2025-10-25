@@ -94,6 +94,12 @@ protected:
 	virtual bool HasItem_Implementation(FPrimaryAssetId ItemID) override;
 	void UseQuickSlotX();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	FString ExitSectionPrefix = TEXT("ExitSection");
+
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	float ExitBlendOutTime = 0.2f;
+
 	// Gun
 public:
 	void SetGunState(EGunState GunState, uint8 InIsZooming, bool PlayMontage);
@@ -158,8 +164,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	AActor* GetClosestInteractable();
 	// ÆÄ»çµå
-	void AddOverlappingInteractable(AActor* InInteractable);
-	void RemoveOverlappingInteractable(AActor* InInteractable);
+	void AddOverlappingInteractable_Implementation(AActor* InInteractable);
+	void RemoveOverlappingInteractable_Implementation(AActor* InInteractable);
 
 	// Inventory Section
 protected:

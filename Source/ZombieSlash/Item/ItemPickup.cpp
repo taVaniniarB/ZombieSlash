@@ -72,7 +72,7 @@ void AItemPickup::Interact_Implementation(AActor* Interactor)
 		if (Pawn->PickupItem(ItemID, Metadata.ItemType, Quantity))
 		{
 			Destroy();
-			Pawn->RemoveOverlappingInteractable(this);
+			Pawn->Execute_RemoveOverlappingInteractable(Interactor, this);
 		}
 	}
 }
@@ -98,7 +98,7 @@ void AItemPickup::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->AddOverlappingInteractable(this);
+		OverlappingPawn->Execute_AddOverlappingInteractable(OtherActor, this);
 	}
 }
 
@@ -107,7 +107,7 @@ void AItemPickup::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->RemoveOverlappingInteractable(this);
+		OverlappingPawn->Execute_RemoveOverlappingInteractable(OtherActor, this);
 	}
 }
 

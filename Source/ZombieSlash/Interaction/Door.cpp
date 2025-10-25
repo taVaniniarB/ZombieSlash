@@ -66,7 +66,9 @@ bool ADoor::CanInteract_Implementation(AActor* Interactor) const
 
 	// 폰이 RequiredItem을 보유중일 시 문이 열린다
 	ICharacterInteractInterface* Pawn = Cast<ICharacterInteractInterface>(Interactor);
-	return Pawn->Execute_HasItem(Cast<UObject>(Pawn), RequiredItem);
+	bool HasItem = Pawn->Execute_HasItem(Cast<UObject>(Pawn), RequiredItem);
+	UE_LOG(LogTemp, Warning, TEXT("Door::CanInteract_Implementation - HasItem: %s"), HasItem ? TEXT("True") : TEXT("False"));
+	return HasItem;
 }
 
 void ADoor::Interact_Implementation(AActor* Interactor)
@@ -79,10 +81,16 @@ void ADoor::Interact_Implementation(AActor* Interactor)
 	TargetRotation = DeltaRotation * InitialRotation;
 	CurRotationAlpha = 0.0f;
 
+	if (Mesh)
+	{
+		// 충돌 비활성화
+		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
 	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(Interactor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->RemoveOverlappingInteractable(this);
+		OverlappingPawn->Execute_RemoveOverlappingInteractable(Interactor, this);
 	}
 	Trigger->OnComponentBeginOverlap.RemoveAll(this);
 	Trigger->OnComponentEndOverlap.RemoveAll(this);
@@ -100,7 +108,7 @@ void ADoor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->AddOverlappingInteractable(this);
+		OverlappingPawn->Execute_AddOverlappingInteractable(OtherActor, this);
 	}
 }
 
@@ -109,7 +117,7 @@ void ADoor::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Other
 	ICharacterInteractInterface* OverlappingPawn = Cast<ICharacterInteractInterface>(OtherActor);
 	if (OverlappingPawn)
 	{
-		OverlappingPawn->RemoveOverlappingInteractable(this);
+		OverlappingPawn->Execute_RemoveOverlappingInteractable(OtherActor, this);
 	}
 }
 

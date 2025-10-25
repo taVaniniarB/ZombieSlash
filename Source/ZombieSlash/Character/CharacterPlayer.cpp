@@ -219,21 +219,31 @@ void ACharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 
+	// 사용자의 즉각적인 반응성 확보 위해 이동 입력 시 항상 ExitMontage 호출
 	ExitMontage();
 }
 
 void ACharacterPlayer::ExitMontage()
 {
 	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
-	if (AnimInst->IsAnyMontagePlaying())
-	{
-		FName CurrentSection = AnimInst->Montage_GetCurrentSection();
-		FString SectionStr = CurrentSection.ToString();
 
-		if (SectionStr.StartsWith(TEXT("ExitSection")))
+	// 애니메이션 몽타주가 재생 중이 아닐 경우 함수 종료
+	if (!AnimInst 
+		|| !AnimInst->IsAnyMontagePlaying()) return;
+
+	// 현재 재생 중인 섹션 이름을 문자열로 변환
+	FName CurrentSection = AnimInst->Montage_GetCurrentSection();
+	FString SectionStr = CurrentSection.ToString();
+
+	// 섹션 이름이 "ExitSection"으로 시작하는지 확인
+	if (SectionStr.StartsWith(ExitSectionPrefix))
+	{
+		UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage();
+
+		if (Montage)
 		{
-			UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage();
-			AnimInst->Montage_Stop(0.2f, Montage);
+			// 몽타주를 부드럽게 중지
+			AnimInst->Montage_Stop(ExitBlendOutTime, Montage);
 		}
 	}
 }
@@ -303,8 +313,8 @@ void ACharacterPlayer::SetGunState(EGunState NewGunState, uint8 InIsZooming, boo
 	CurGunState = NewGunState;
 	bIsZooming = InIsZooming;
 
-	bIsAiming = EGunState::Aim == CurGunState ? true : false;
-	bIsReloading = EGunState::Reload == CurGunState ? true : false;
+	bIsAiming = (CurGunState == EGunState::Aim);
+	bIsReloading = (CurGunState == EGunState::Reload);
 
 	UpdateAnimAimState();
 }
@@ -374,6 +384,7 @@ void ACharacterPlayer::EndReload()
 void ACharacterPlayer::SwitchWeapon(const FInputActionInstance& Value)
 {
 	WeaponManager->SwitchWeapon(Value);
+	UpdateMovementSpeed();
 }
 
 
@@ -432,7 +443,6 @@ void ACharacterPlayer::UpdateWeaponIMC(EWeaponType NewWeaponType)
 			case EWeaponType::Gun:
 				if (GunIMC)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("UpdateWeaponIMC Called, GunIMC"));
 					Subsystem->AddMappingContext(GunIMC, 1);
 				}
 				break;
@@ -487,12 +497,12 @@ AActor* ACharacterPlayer::GetClosestInteractable()
 	return nullptr;
 }
 
-void ACharacterPlayer::AddOverlappingInteractable(AActor* InInteractable)
+void ACharacterPlayer::AddOverlappingInteractable_Implementation(AActor* InInteractable)
 {
 	Interaction->AddOverlappingInteractable(InInteractable);
 }
 
-void ACharacterPlayer::RemoveOverlappingInteractable(AActor* InInteractable)
+void ACharacterPlayer::RemoveOverlappingInteractable_Implementation(AActor* InInteractable)
 {
 	Interaction->RemoveOverlappingInteractable(InInteractable);
 }

@@ -161,12 +161,12 @@ void ACharacterBase::AttackHitCheck()
 	}
 
 #if ENABLE_DRAW_DEBUG
-	FVector CapsuleOrigin = Start + 0.5 * (End - Start);
+	/*FVector CapsuleOrigin = Start + 0.5 * (End - Start);
 	float CapsuleHalfHeight = (AttackRange * 0.5) + AttackRadius;
 	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
 	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
 		FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor,
-		false, 3.f);
+		false, 3.f);*/
 #endif
 }
 

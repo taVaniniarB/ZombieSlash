@@ -29,13 +29,39 @@ void UInteractionComponent::RemoveOverlappingInteractable(AActor* InInteractable
 
 void UInteractionComponent::TryInteract()
 {
-	IInteractable* Interactable = Cast<IInteractable>(ClosestInteractable);
-	if (!Interactable) return;
-
+	/*IInteractable* Interactable = Cast<IInteractable>(ClosestInteractable);
+	if (!Interactable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No ClosestInteractable"));
+		return;
+	}
+	
 	if (IInteractable::Execute_CanInteract(ClosestInteractable, GetOwner()))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Can Interact"));
 		IInteractable::Execute_Interact(ClosestInteractable, GetOwner());
 	}
+	*/
+
+	// 인터페이스 구현 여부 확인
+	if (ClosestInteractable && ClosestInteractable->GetClass()->ImplementsInterface(UInteractable::StaticClass()))
+	{
+		// 상호작용 가능 여부 확인
+		if (IInteractable::Execute_CanInteract(ClosestInteractable, GetOwner()))
+		{
+			IInteractable::Execute_Interact(ClosestInteractable, GetOwner());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Cannot Interact"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No ClosestInteractable"));
+		return;
+	}
+
 }
 
 void UInteractionComponent::UpdateClosestInteractable()

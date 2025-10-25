@@ -98,7 +98,6 @@ void UItemManagerSubsystem::LoadItemDataAsync_BP(FPrimaryAssetId ItemID, const F
 					OnLoaded.ExecuteIfBound(ItemData);
 				});
 		});
-
 }
 
 UItemData* UItemManagerSubsystem::GetCachedItemData(FPrimaryAssetId ItemID)
