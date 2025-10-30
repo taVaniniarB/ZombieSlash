@@ -25,7 +25,7 @@
 - **디자인 패턴**: 상태, 델리게이트, 싱글턴
 
 ## 상세 설명
-프로젝트의 세부 설계, 구현 과정, 최적화 기법 등은 노션 페이지에서 확인하세요.
+[노션 링크](https://wooden-wednesday-dc2.notion.site/Unreal-3-270169b4aa3f808fb5aec70fa133ce4b?source=copy_link)
 
 ## 주요 구현 포인트
 입력 최적화: Enhanced Input System으로 무기별 동적 입력 매핑
