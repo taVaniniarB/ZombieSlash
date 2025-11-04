@@ -49,7 +49,7 @@ void UPlayerWeaponManagerComponent::Attack()
 {
 	Super::Attack();
 	
-	// 총기일 경우 조준 상태로 전환
+	// 현재 들고 있는 무기가 총기일 경우 조준 상태로 전환
 	if (EWeaponType::Gun == Weapons[CurWeaponIndex]->GetWeaponType())
 	{
 		EnterAimState();

@@ -82,6 +82,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, Meta = (AllowPriaveAccess = "true"))
 	TObjectPtr<class UInputAction> QuickSlotX;
 
+	// Movement Section
+public:
+	UPROPERTY(BlueprintReadWrite, Category = "Movement")
+	bool bCanExitRootMotion = false;
 
 	void Move(const FInputActionValue& Value);
 	void ExitMontage();

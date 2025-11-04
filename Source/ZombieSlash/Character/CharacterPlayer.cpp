@@ -219,32 +219,47 @@ void ACharacterPlayer::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.X);
 	AddMovementInput(RightDirection, MovementVector.Y);
 
-	// 사용자의 즉각적인 반응성 확보 위해 이동 입력 시 항상 ExitMontage 호출
 	ExitMontage();
 }
 
 void ACharacterPlayer::ExitMontage()
 {
-	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
+	// Anim Notify State 사용 코드
+	// 
+	//if (!bCanExitRootMotion) return; // 노티파이 상태 아닐 때 무시
 
-	// 애니메이션 몽타주가 재생 중이 아닐 경우 함수 종료
-	if (!AnimInst 
-		|| !AnimInst->IsAnyMontagePlaying()) return;
+	//UAnimInstance* AnimInst = GetMesh()->GetAnimInstance();
 
-	// 현재 재생 중인 섹션 이름을 문자열로 변환
-	FName CurrentSection = AnimInst->Montage_GetCurrentSection();
-	FString SectionStr = CurrentSection.ToString();
+	//// 애니메이션 몽타주가 재생 중이 아닐 경우 함수 종료
+	//if (!AnimInst || !AnimInst->IsAnyMontagePlaying()) return;
 
-	// 섹션 이름이 "ExitSection"으로 시작하는지 확인
-	if (SectionStr.StartsWith(ExitSectionPrefix))
-	{
-		UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage();
+	//UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage();
 
-		if (Montage)
-		{
-			// 몽타주를 부드럽게 중지
-			AnimInst->Montage_Stop(ExitBlendOutTime, Montage);
-		}
+	//if (Montage)
+	//{
+	//	// 몽타주를 부드럽게 중지
+	//	AnimInst->Montage_Stop(ExitBlendOutTime, Montage);
+	//	bCanExitRootMotion = false; // 다시 루트 모션 종료 불가 상태로 변경
+	//}
+
+
+	// 몽타주 Section 사용 코드
+
+	UAnimInstance* AnimInst = GetMesh()->GetAnimInstance(); 
+
+	// 애니메이션 몽타주가 재생 중이지 않은 경우 함수 종료 
+	if (!AnimInst || !AnimInst->IsAnyMontagePlaying()) return; 
+
+	// 현재 재생 중인 섹션 이름을 문자열로 변환 
+	FName CurrentSection = AnimInst->Montage_GetCurrentSection(); 
+	FString SectionStr = CurrentSection.ToString(); 
+	
+	// 섹션 이름이 "ExitSection"으로 시작하는지 확인 
+	if (SectionStr.StartsWith(ExitSectionPrefix)) { 
+		UAnimMontage* Montage = AnimInst->GetCurrentActiveMontage(); 
+		if (Montage) { 
+			// 몽타주 중지 
+			AnimInst->Montage_Stop(ExitBlendOutTime, Montage); } 
 	}
 }
 

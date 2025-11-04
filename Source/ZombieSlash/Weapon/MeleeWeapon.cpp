@@ -104,6 +104,7 @@ void AMeleeWeapon::SetComboCheckTimer()
 {
     // 현재 몇 콤보인가? (콤보액션 데이터에셋의 인덱스 상)
     int32 ComboIndex = CurCombo - 1;
+	UE_LOG(LogTemp, Warning, TEXT("SetComboCheckTimer - ComboIndex: %d"), ComboIndex);
 
     ensure(ComboActionData->EffectiveFrameCount.IsValidIndex(ComboIndex));
 

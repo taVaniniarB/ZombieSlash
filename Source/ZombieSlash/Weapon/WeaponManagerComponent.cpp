@@ -10,7 +10,6 @@
 #include "Character/CharacterBase.h"
 #include "CharacterStat/CharacterStatComponent.h"
 
-// Sets default values for this component's properties
 UWeaponManagerComponent::UWeaponManagerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -18,7 +17,6 @@ UWeaponManagerComponent::UWeaponManagerComponent()
 	CurWeaponIndex = 0;
 }
 
-// Called when the game starts
 void UWeaponManagerComponent::BeginPlay()
 {
 	Super::BeginPlay();

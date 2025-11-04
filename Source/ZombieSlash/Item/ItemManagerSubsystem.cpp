@@ -22,21 +22,13 @@ void UItemManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UItemManagerSubsystem::Deinitialize()
 {
-	ItemDataCache.Empty();
+	// Subsystem이 언리얼 엔진 종료 시점에 해제될 때 메모리 누수가 발생하는 문제를 해결하기 위함
+
+	CacheMap.Empty(); // 노트 포인터 보유하기 때문에 먼저 비워야 함 (Dangling Pointer 방지)
+	CacheList.Empty();
+	CachedItems.Empty();
+
 	Super::Deinitialize();
-}
-
-void UItemManagerSubsystem::PreloadItemData()
-{
-	UAssetManager& AssetManager = UAssetManager::Get();
-	TArray<FPrimaryAssetId> AssetIDs;
-	AssetManager.GetPrimaryAssetIdList(FPrimaryAssetType("ItemData"), AssetIDs); //AssetIDs에 ItemData로 시작하는 아이디 가진 에셋들 저장
-
-	// AssetIDs 순회하며 로드
-	for (const FPrimaryAssetId& ID : AssetIDs)
-	{
-		AssetManager.LoadPrimaryAsset(ID, TArray<FName>(), FStreamableDelegate(), 0);
-	}
 }
 
 bool UItemManagerSubsystem::GetMetadata(FPrimaryAssetId InID, FItemMetadata& OutMetadata) const
@@ -54,7 +46,7 @@ bool UItemManagerSubsystem::GetMetadata(FPrimaryAssetId InID, FItemMetadata& Out
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("메타데이터 찾지 못함: %s"), *InID.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Cannot Found Metadata: %s"), *InID.ToString());
 		return false;
 	}
 }
@@ -62,7 +54,7 @@ bool UItemManagerSubsystem::GetMetadata(FPrimaryAssetId InID, FItemMetadata& Out
 // 캐시에서 찾아보고 없으면 비동기 로드
 void UItemManagerSubsystem::LoadItemDataAsync(FPrimaryAssetId ItemID, TFunction<void(class UItemData*)> OnLoaded)
 {
-	// 캐시에 아이템이 있다
+	// 캐시 히트
 	if (UItemData* CachedData = GetCachedItemData(ItemID))
 	{
 		OnLoaded(CachedData);
@@ -102,26 +94,61 @@ void UItemManagerSubsystem::LoadItemDataAsync_BP(FPrimaryAssetId ItemID, const F
 
 UItemData* UItemManagerSubsystem::GetCachedItemData(FPrimaryAssetId ItemID)
 {
-	UItemData** CachedItem = ItemDataCache.Find(ItemID);
-	return CachedItem ? *CachedItem : nullptr;
+	auto NodePtr = CacheMap.Find(ItemID);
+
+	// 캐시 히트
+	if (NodePtr)
+	{
+		// LRU 갱신
+		auto Node = *NodePtr;
+		MoveToHead(Node);
+		return Node->GetValue().Value.Get();
+	}
+
+	return nullptr;
 }
 
 void UItemManagerSubsystem::AddToCache(FPrimaryAssetId ItemID, UItemData* ItemData)
 {
-	if (ItemDataCache.Num() >= MaxCacheSize)
+	// 이미 캐시에 존재하면 LRU 갱신 후 종료
+	if (CacheMap.Contains(ItemID))
+	{
+		auto NodePtr = CacheMap.Find(ItemID);
+		auto Node = *NodePtr;
+		// LRU 갱신
+		MoveToHead(Node);
+		return;
+	}
+
+	// 새 항목 추가
+	FLRUCacheEntry NewEntry{ ItemID, ItemData };
+	CacheList.AddHead(NewEntry);
+	CacheMap.Add(ItemID, CacheList.GetHead());
+
+	// 같은 Id 아이템이 여러개 들어가는 것을 방지
+	CachedItems.AddUnique(ItemData);
+
+	// 캐시 크기 초과 시 제거
+	if (CacheList.Num() > MaxCacheSize)
 	{
 		EvictCache();
 	}
-	ItemDataCache.Add(ItemID, ItemData);
 }
 
 void UItemManagerSubsystem::EvictCache()
 {
 	// LRU 기반으로 오래된 항목 제거
-	TArray<FPrimaryAssetId> Keys;
-	ItemDataCache.GetKeys(Keys);
-	if (Keys.Num() > 0)
+	auto TailNode = CacheList.GetTail();
+	if (TailNode)
 	{
-		ItemDataCache.Remove(Keys[0]);
+		CachedItems.Remove(TailNode->GetValue().Value);
+		CacheMap.Remove(TailNode->GetValue().Key);
+		CacheList.RemoveNode(TailNode);
 	}
+}
+
+void UItemManagerSubsystem::MoveToHead(TDoubleLinkedList<FLRUCacheEntry>::TDoubleLinkedListNode* Node)
+{
+	CacheList.RemoveNode(Node, false);
+	CacheList.AddHead(Node);
 }
