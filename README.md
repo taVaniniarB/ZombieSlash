@@ -1,8 +1,8 @@
 ## Unreal 3인칭 액션 게임 (C++)
 
-**기간:** 2025.07.16 – 2025.09.16 (2개월)
-**개발:** 1인 프로젝트
-**기술:** Unreal Engine 5.4, C++
+- **기간:** 2025.07.16 – 2025.09.16 (2개월)
+- **개발:** 1인 프로젝트
+- **기술:** Unreal Engine 5.4, C++
 
 -----
 
@@ -23,16 +23,16 @@
 -----
 
 ### 상세 내용 및 시연 동영상
-  * **Notion 포트폴리오 (상세):** [포트폴리오](https://wooden-wednesday-dc2.notion.site/Unreal-3-270169b4aa3f808fb5aec70fa133ce4b?source=copy_link)
-  * **시연 동영상:** [https://youtu.be/b\_bkvLUsCxQ](https://youtu.be/b_bkvLUsCxQ)
+  * [Notion 포트폴리오](https://wooden-wednesday-dc2.notion.site/Unreal-3-270169b4aa3f808fb5aec70fa133ce4b?source=copy_link)
+  * [시연 동영상](https://youtu.be/b_bkvLUsCxQ)
 
 -----
 
-### 💻 기술 하이라이트
+### 기술
 
 | 분야 | 핵심 내용 |
 | :--- | :--- |
-| **시스템 구조** | GameInstance Subsystem(`ItemManager`), Component(`EffectManager`, `InteractionComponent`)를 활용한 모듈화 및 책임 분리. |
-| **객체 지향** | **상태 패턴** 기반 총기 상태 관리, **델리게이트 패턴**을 이용한 UI-로직 분리, `IInteractable` **인터페이스**를 통한 다형성 구현. |
-| **최적화/성능** | **LRU 캐시**를 적용한 아이템 데이터 관리 및 비동기 로딩, **데이터 테이블** 기반의 메타데이터 조회로 불필요한 리소스 로드 방지. |
-| **조작/애니메이션**| Enhanced Input System의 동적 컨텍스트 전환, 근접 공격 애니메이션의 \*\*`ExitSection`\*\*을 활용한 자연스러운 입력 반응성 확보. |
+| **시스템 구조** | GameInstance Subsystem(`ItemManager`), Component(`EffectManager`, `InteractionComponent`)를 활용한 모듈화 및 책임 분리 |
+| **객체 지향** | **상태 패턴** 기반 총기 상태 관리, **델리게이트 패턴**을 이용한 UI-로직 분리, `IInteractable` **인터페이스**를 통한 다형성 구현 |
+| **최적화/성능** | **LRU 캐시**를 적용한 아이템 데이터 관리 및 비동기 로딩, **데이터 테이블** 기반의 메타데이터 조회로 불필요한 리소스 로드 방지 |
+| **조작/애니메이션**| Enhanced Input System의 동적 컨텍스트 전환, 근접 공격 애니메이션의 \*\*`ExitSection`\*\*을 활용한 자연스러운 입력 반응성 확보 |
